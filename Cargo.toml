@@ -1,0 +1,18 @@
+[package]
+name = "ps-datachunk"
+description = "Chunk-based data encrypter"
+version = "0.1.0-1"
+edition = "2021"
+license = "GPL-3.0-or-later"
+
+[profile.dev]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+
+[dependencies]
+ps-cypher = "0.1.0-2"
+ps-hash = "0.1.0-3"
+ps-mbuf = "0.1.0-2"
+rkyv = { version = "0.7.44", features = ["validation"] }
