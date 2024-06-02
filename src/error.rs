@@ -6,7 +6,9 @@ pub enum PsDataChunkError {
     HashConversionError,
     SerializationError,
     DeserializationError,
+    InvalidDataChunk,
     InvalidChecksum,
+    ShouldNotHaveFailed(&'static str),
     Other,
 }
 

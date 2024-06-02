@@ -1,4 +1,6 @@
+pub mod aligned;
 pub mod error;
+pub use aligned::AlignedDataChunk;
 pub use error::PsDataChunkError;
 pub use ps_cypher::Compressor;
 pub use ps_mbuf::Mbuf;
@@ -23,6 +25,7 @@ pub struct OwnedDataChunk {
 pub enum DataChunk<'lt> {
     Mbuf(&'lt mut Mbuf<'lt, [u8; 50], u8>),
     Owned(OwnedDataChunk),
+    Aligned(AlignedDataChunk),
 }
 
 /// represents an encrypted chunk of data and the key needed to decrypt it
@@ -66,7 +69,7 @@ impl OwnedDataChunk {
         }
 
         let mut chunk = OwnedDataChunk {
-            hash: convert_hash(&ps_hash::hash(&data[0..data.len() - 50]))?,
+            hash: ps_hash::hash(&data[0..data.len() - 50]).into(),
             data,
         };
 
@@ -122,9 +125,9 @@ impl OwnedDataChunk {
         Ok(EncryptedDataChunk {
             chunk: OwnedDataChunk {
                 data: encrypted.bytes,
-                hash: convert_hash(&encrypted.hash)?,
+                hash: encrypted.hash.into(),
             },
-            key: convert_hash(&encrypted.key)?,
+            key: encrypted.key.into(),
         })
     }
 
@@ -167,6 +170,7 @@ impl<'lt> Into<OwnedDataChunk> for DataChunk<'lt> {
         match self {
             Self::Mbuf(_) => self.to_owned(),
             Self::Owned(owned) => owned,
+            Self::Aligned(_) => self.to_owned(),
         }
     }
 }
@@ -182,6 +186,7 @@ impl<'lt> DataChunk<'lt> {
                 hash: mbuf.get_metadata().to_owned(),
             },
             DataChunk::Owned(chunk) => chunk,
+            DataChunk::Aligned(aligned) => aligned.into(),
         }
     }
 
@@ -194,6 +199,10 @@ impl<'lt> DataChunk<'lt> {
                 hash: mbuf.get_metadata().to_owned(),
             },
             DataChunk::Owned(chunk) => chunk.clone(),
+            DataChunk::Aligned(aligned) => OwnedDataChunk {
+                data: aligned.data().to_vec(),
+                hash: aligned.hash(),
+            },
         }
     }
 
@@ -204,6 +213,7 @@ impl<'lt> DataChunk<'lt> {
         match self {
             Self::Mbuf(_) => self.to_owned().serialize_into(),
             Self::Owned(chunk) => chunk.serialize_into(),
+            Self::Aligned(aligned) => aligned.serialize_into().to_vec(),
         }
     }
 
@@ -223,6 +233,9 @@ impl<'lt> DataChunk<'lt> {
         let owned = match self {
             Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(&mbuf[..], key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
+            Self::Aligned(aligned) => {
+                OwnedDataChunk::decrypt_bytes(aligned.data(), key, compressor)
+            }
         }?;
 
         Ok(owned.into())
@@ -246,6 +259,7 @@ impl<'lt> DataChunk<'lt> {
         match self {
             DataChunk::Mbuf(_) => self.encrypt(compressor),
             DataChunk::Owned(chunk) => chunk.encrypt_mut(compressor),
+            DataChunk::Aligned(_) => self.encrypt(compressor),
         }
     }
 }
@@ -267,7 +281,7 @@ mod tests {
         let original_data = "Neboť tak Bůh miluje svět, že dal [svého] jediného Syna, aby žádný, kdo v něho věří, nezahynul, ale měl život věčný. Vždyť Bůh neposlal [svého] Syna na svět, aby svět odsoudil, ale aby byl svět skrze něj zachráněn.".as_bytes().to_owned();
 
         let data_chunk = DataChunk::Owned(OwnedDataChunk {
-            hash: convert_hash(&ps_hash::hash(&original_data))?,
+            hash: ps_hash::hash(&original_data).into(),
             data: original_data.clone(),
         });
 
@@ -282,7 +296,7 @@ mod tests {
     #[test]
     fn test_serialization() -> Result<(), PsDataChunkError> {
         let original_data = vec![1, 2, 3, 4, 5];
-        let hash = convert_hash(&ps_hash::hash(&original_data))?;
+        let hash = ps_hash::hash(&original_data).into();
         let owned_chunk = OwnedDataChunk {
             hash,
             data: original_data.clone(),
