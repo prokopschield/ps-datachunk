@@ -27,18 +27,29 @@ pub const fn offsets(dsize: usize, hsize: usize) -> (usize, usize, usize) {
 }
 
 impl AlignedDataChunk {
+    pub fn new_with_parameters(
+        mut data: AlignedVec,
+        hash: &[u8],
+        data_length: usize,
+        hash_offset: usize,
+        size_offset: usize,
+    ) -> Self {
+        data.extend_from_slice(&vec![0u8; hash_offset - data.len()]);
+        data.extend_from_slice(hash);
+        data.extend_from_slice(&vec![0u8; size_offset - data.len()]);
+        data.extend_from_slice(&data_length.to_le_bytes());
+
+        Self { inner: data }
+    }
+
     pub fn new_with_hash(chunk_data: &[u8], hash: &[u8]) -> Self {
         let (hash_offset, size_offset, size) = offsets(chunk_data.len(), hash.len());
 
         let mut data = AlignedVec::with_capacity(size);
 
         data.extend_from_slice(chunk_data);
-        data.extend_from_slice(&vec![0u8; hash_offset - data.len()]);
-        data.extend_from_slice(hash);
-        data.extend_from_slice(&vec![0u8; size_offset - data.len()]);
-        data.extend_from_slice(&chunk_data.len().to_le_bytes());
 
-        Self { inner: data }
+        Self::new_with_parameters(data, hash, chunk_data.len(), hash_offset, size_offset)
     }
 
     pub fn new(chunk_data: &[u8]) -> Self {
