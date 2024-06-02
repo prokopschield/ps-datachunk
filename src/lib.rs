@@ -1,4 +1,5 @@
 pub mod aligned;
+pub mod deserializer;
 pub mod error;
 pub mod serializer;
 pub use aligned::AlignedDataChunk;
@@ -60,22 +61,12 @@ impl OwnedDataChunk {
     /// - converts a `Vec<u8>` into an `OwnedDataChunk`
     /// - performs hash validation
     pub fn deserialize_from(data: Vec<u8>) -> Result<Self, PsDataChunkError> {
-        if data.len() < 50 {
-            return Err(PsDataChunkError::DeserializationError);
-        }
+        let (data, hash) = deserializer::deserialize_vec_to_parts(data)?;
 
-        let mut chunk = OwnedDataChunk {
-            hash: ps_hash::hash(&data[0..data.len() - 50]).into(),
+        Ok(Self {
             data,
-        };
-
-        if chunk.data[chunk.data.len() - 50..chunk.data.len()] != chunk.hash {
-            return Err(PsDataChunkError::DeserializationError);
-        }
-
-        chunk.data.truncate(chunk.data.len() - 50);
-
-        return Ok(chunk);
+            hash: hash.into(),
+        })
     }
 
     #[inline(always)]
