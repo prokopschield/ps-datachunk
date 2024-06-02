@@ -1,5 +1,6 @@
 pub mod aligned;
 pub mod error;
+pub mod serializer;
 pub use aligned::AlignedDataChunk;
 pub use error::PsDataChunkError;
 pub use ps_cypher::Compressor;
@@ -37,10 +38,10 @@ pub struct EncryptedDataChunk {
 impl OwnedDataChunk {
     #[inline(always)]
     /// converts this `OwnedDataChunk` into a `Vec<u8>`
-    /// - appends `self.hash` to `self.data`
+    /// - extends `self.hash`
     /// - returns `self.data`
     pub fn serialize_into(mut self) -> Vec<u8> {
-        self.data.extend_from_slice(&self.hash);
+        serializer::serialize_vec_with_known_hash(&mut self.data, &self.hash);
 
         return self.data;
     }
@@ -52,12 +53,7 @@ impl OwnedDataChunk {
     /// - copies `self.hash` into the new `Vec<u8>`
     /// - returns the new `Vec<u8>`
     pub fn serialize(&self) -> Vec<u8> {
-        let mut buffer = Vec::<u8>::with_capacity(self.data.len() + self.hash.len());
-
-        buffer.extend_from_slice(&self.data);
-        buffer.extend_from_slice(&self.hash);
-
-        return buffer;
+        serializer::serialize_bytes_with_known_hash(&self.data, &self.hash)
     }
 
     #[inline(always)]
@@ -149,7 +145,7 @@ impl OwnedDataChunk {
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
         let data_length = self.data.len();
 
-        self.data.extend_from_slice(&self.hash);
+        serializer::serialize_vec_with_known_hash(&mut self.data, &self.hash);
 
         let encrypted = Self::encrypt_bytes(&self.data, compressor);
 
