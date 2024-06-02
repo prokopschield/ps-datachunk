@@ -180,3 +180,28 @@ impl<'lt> Into<DataChunk<'lt>> for AlignedDataChunk {
         DataChunk::Aligned(self)
     }
 }
+
+impl AlignedDataChunk {
+    pub fn try_from<
+        const S: usize,
+        T: rkyv::Archive + rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<S>>,
+    >(
+        value: &T,
+    ) -> Result<Self, PsDataChunkError> {
+        let data = rkyv::to_bytes(value).map_err(|_| PsDataChunkError::SerializationError)?;
+        let chunk = Self::new_from_data_vec(data);
+
+        Ok(chunk)
+    }
+
+    pub fn try_as<'lt, T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived, PsDataChunkError>
+    where
+        <T as rkyv::Archive>::Archived:
+            rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
+    {
+        let result = rkyv::check_archived_root::<T>(self.data());
+        let value = result.map_err(|_| PsDataChunkError::DeserializationError)?;
+
+        Ok(value)
+    }
+}
