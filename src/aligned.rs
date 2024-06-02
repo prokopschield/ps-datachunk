@@ -110,6 +110,10 @@ impl AlignedDataChunk {
 
         Ok(chunk)
     }
+
+    pub fn as_serialized_bytes(&self) -> &[u8] {
+        &self.inner
+    }
 }
 
 impl<'lt> From<&'lt Mbuf<'lt, [u8; 50], u8>> for AlignedDataChunk {

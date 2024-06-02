@@ -234,7 +234,13 @@ impl<'lt> DataChunk<'lt> {
         &self,
         compressor: &mut Compressor,
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
-        OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor)
+        match self {
+            DataChunk::Mbuf(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
+            DataChunk::Owned(owned) => owned.encrypt(compressor),
+            DataChunk::Aligned(aligned) => {
+                OwnedDataChunk::encrypt_bytes(aligned.as_serialized_bytes(), compressor)
+            }
+        }
     }
 
     #[inline(always)]
