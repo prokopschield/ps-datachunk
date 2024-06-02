@@ -52,6 +52,14 @@ impl AlignedDataChunk {
         Self::new_with_parameters(data, hash, chunk_data.len(), hash_offset, size_offset)
     }
 
+    pub fn new_from_data_vec(data: AlignedVec) -> Self {
+        let (hash_offset, size_offset, _) = offsets(data.len(), HSIZE);
+        let hash = ps_hash::hash(data.as_slice());
+        let data_length = data.len();
+
+        Self::new_with_parameters(data, hash.as_bytes(), data_length, hash_offset, size_offset)
+    }
+
     pub fn new(chunk_data: &[u8]) -> Self {
         Self::new_with_hash(chunk_data, ps_hash::hash(chunk_data).as_bytes())
     }
