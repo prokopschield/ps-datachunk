@@ -8,7 +8,10 @@ pub struct AlignedDataChunk {
 }
 
 pub const fn rup(size: usize, n: usize) -> usize {
-    (((size - 1) >> n) + 1) << n
+    match size {
+        0 => 0,
+        size => (((size - 1) >> n) + 1) << n,
+    }
 }
 
 pub const fn rdown(size: usize, n: usize) -> usize {
