@@ -16,3 +16,4 @@ ps-cypher = "0.1.0-4"
 ps-hash = "0.1.0-5"
 ps-mbuf = "0.1.0-2"
 rkyv = { version = "0.7.44", features = ["validation"] }
+thiserror = "1.0.61"
