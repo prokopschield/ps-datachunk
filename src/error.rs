@@ -1,15 +1,21 @@
-use ps_cypher::PsCypherError;
+use thiserror::Error;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PsDataChunkError {
-    PsCypherError(ps_cypher::PsCypherError),
+    #[error(transparent)]
+    PsCypherError(#[from] ps_cypher::PsCypherError),
+    #[error("Failed to convert a hash to [u8; 50]")]
     HashConversionError,
+    #[error("Failed to serialize into an AlignedDataChunk")]
     SerializationError,
+    #[error("Failed to deserialize from an AlignedDataChunk")]
     DeserializationError,
+    #[error("The data chunk was not correctly layed out")]
     InvalidDataChunk,
+    #[error("The hash of a chunk was incorrect")]
     InvalidChecksum,
+    #[error("This should never happen: {0}")]
     ShouldNotHaveFailed(&'static str),
-    Other,
 }
 
 impl PsDataChunkError {
@@ -24,11 +30,5 @@ impl PsDataChunkError {
             Ok(value) => Ok(value),
             Err(_) => Err(error),
         }
-    }
-}
-
-impl From<PsCypherError> for PsDataChunkError {
-    fn from(error: PsCypherError) -> Self {
-        Self::PsCypherError(error)
     }
 }
