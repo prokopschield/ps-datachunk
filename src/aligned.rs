@@ -218,3 +218,14 @@ impl AlignedDataChunk {
         Self::try_bytes_as::<T>(self.data())
     }
 }
+
+impl<'lt> DataChunk<'lt> {
+    pub fn try_from<
+        const S: usize,
+        T: rkyv::Archive + rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<S>>,
+    >(
+        value: &T,
+    ) -> Result<Self, PsDataChunkError> {
+        Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
+    }
+}
