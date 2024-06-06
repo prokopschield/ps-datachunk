@@ -1,6 +1,7 @@
 use crate::*;
 use ps_hash::Hash;
 use rkyv::AlignedVec;
+use std::borrow::Cow;
 
 #[derive(rkyv::Archive, rkyv::Serialize, Debug, Clone)]
 pub struct AlignedDataChunk {
@@ -227,5 +228,12 @@ impl<'lt> DataChunk<'lt> {
         value: &T,
     ) -> Result<Self, PsDataChunkError> {
         Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
+    }
+
+    pub fn align(&self) -> Cow<AlignedDataChunk> {
+        match self {
+            Self::Aligned(aligned) => Cow::Borrowed(aligned),
+            _ => Cow::Owned(self.into()),
+        }
     }
 }
