@@ -82,7 +82,7 @@ impl OwnedDataChunk {
     pub fn decrypt_bytes(
         encrypted: &[u8],
         key: &[u8],
-        compressor: &mut Compressor,
+        compressor: &Compressor,
     ) -> Result<Self, PsDataChunkError> {
         let decrypted = ps_cypher::decrypt(encrypted, key, compressor)?;
 
@@ -93,11 +93,7 @@ impl OwnedDataChunk {
     /// Decrypts an `OwnedDataChunk` with the given `key`.
     /// - performs hash validation
     /// - fails if `key` not correct
-    pub fn decrypt(
-        &self,
-        key: &[u8],
-        compressor: &mut Compressor,
-    ) -> Result<Self, PsDataChunkError> {
+    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<Self, PsDataChunkError> {
         Self::decrypt_bytes(&self.data, key, compressor)
     }
 
@@ -105,7 +101,7 @@ impl OwnedDataChunk {
     /// Encrypts a serialized [DataChunk].
     pub fn encrypt_bytes(
         bytes: &[u8],
-        compressor: &mut Compressor,
+        compressor: &Compressor,
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
         let encrypted = ps_cypher::encrypt(bytes, compressor)?;
 
@@ -120,10 +116,7 @@ impl OwnedDataChunk {
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
-    pub fn encrypt(
-        &self,
-        compressor: &mut Compressor,
-    ) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
         Self::encrypt_bytes(&self.serialize(), compressor)
     }
 
@@ -132,7 +125,7 @@ impl OwnedDataChunk {
     /// - optimized by using `self.data` as the serialization buffer
     pub fn encrypt_mut(
         &mut self,
-        compressor: &mut Compressor,
+        compressor: &Compressor,
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
         let data_length = self.data.len();
 
@@ -212,11 +205,7 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Decrypts this [DataChunk] with a given key.
-    pub fn decrypt(
-        &self,
-        key: &[u8],
-        compressor: &mut Compressor,
-    ) -> Result<Self, PsDataChunkError> {
+    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<Self, PsDataChunkError> {
         let owned = match self {
             Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(&mbuf[..], key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
@@ -230,10 +219,7 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
-    pub fn encrypt(
-        &self,
-        compressor: &mut Compressor,
-    ) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
         match self {
             DataChunk::Mbuf(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
             DataChunk::Owned(owned) => owned.encrypt(compressor),
@@ -247,7 +233,7 @@ impl<'lt> DataChunk<'lt> {
     /// Encrypts this [DataChunk] using `self.data` if owned.
     pub fn encrypt_mut(
         &mut self,
-        compressor: &mut Compressor,
+        compressor: &Compressor,
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
         match self {
             DataChunk::Mbuf(_) => self.encrypt(compressor),
@@ -259,7 +245,7 @@ impl<'lt> DataChunk<'lt> {
 
 impl EncryptedDataChunk {
     /// Decrypts this `EncryptedDataChunk`.
-    pub fn decrypt(&self, compressor: &mut Compressor) -> Result<OwnedDataChunk, PsDataChunkError> {
+    pub fn decrypt(&self, compressor: &Compressor) -> Result<OwnedDataChunk, PsDataChunkError> {
         OwnedDataChunk::decrypt(&self.chunk, &self.key, compressor)
     }
 }
@@ -270,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_encryption_decryption() -> Result<(), PsDataChunkError> {
-        let mut compressor = Compressor::new();
+        let compressor = Compressor::new();
         let original_data = "Neboť tak Bůh miluje svět, že dal [svého] jediného Syna, aby žádný, kdo v něho věří, nezahynul, ale měl život věčný. Vždyť Bůh neposlal [svého] Syna na svět, aby svět odsoudil, ale aby byl svět skrze něj zachráněn.".as_bytes().to_owned();
 
         let data_chunk = DataChunk::Owned(OwnedDataChunk {
@@ -278,8 +264,8 @@ mod tests {
             data: original_data.clone(),
         });
 
-        let encrypted_chunk = data_chunk.encrypt(&mut compressor)?;
-        let decrypted_chunk = encrypted_chunk.decrypt(&mut compressor)?;
+        let encrypted_chunk = data_chunk.encrypt(&compressor)?;
+        let decrypted_chunk = encrypted_chunk.decrypt(&compressor)?;
 
         assert_eq!(decrypted_chunk.data, original_data);
 
