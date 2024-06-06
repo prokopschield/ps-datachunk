@@ -230,6 +230,18 @@ impl<'lt> DataChunk<'lt> {
         Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
     }
 
+    pub fn try_as<T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived, PsDataChunkError>
+    where
+        <T as rkyv::Archive>::Archived:
+            rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
+    {
+        match self {
+            Self::Aligned(aligned) => aligned.try_as::<T>(),
+            Self::Mbuf(mbuf) => AlignedDataChunk::try_bytes_as::<T>(mbuf),
+            Self::Owned(owned) => AlignedDataChunk::try_bytes_as::<T>(&owned.data),
+        }
+    }
+
     pub fn align(&self) -> Cow<AlignedDataChunk> {
         match self {
             Self::Aligned(aligned) => Cow::Borrowed(aligned),
