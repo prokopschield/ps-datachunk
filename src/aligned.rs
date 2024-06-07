@@ -249,3 +249,26 @@ impl<'lt> DataChunk<'lt> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_chunk_length_divisibility_and_part_alignment() -> Result<(), PsDataChunkError> {
+        for i in 12..256 {
+            let data = (vec![i as u8; i], ());
+            let chunk = AlignedDataChunk::try_from::<4, _>(&data)?;
+
+            assert_eq!(chunk.inner.len() % 16, 0);
+
+            let (hash_offset, size_offset, size) = offsets(i, HSIZE);
+
+            assert_eq!(hash_offset % 16, 0);
+            assert_eq!(size_offset % 8, 0);
+            assert_eq!(size % 16, 0);
+        }
+
+        Ok(())
+    }
+}
