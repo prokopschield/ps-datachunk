@@ -1,7 +1,9 @@
+pub mod adc;
 pub mod aligned;
 pub mod deserializer;
 pub mod error;
 pub mod serializer;
+pub use adc::AbstractDataChunk;
 pub use aligned::AlignedDataChunk;
 pub use error::PsDataChunkError;
 pub use ps_cypher::Compressor;
