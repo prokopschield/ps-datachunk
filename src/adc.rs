@@ -10,14 +10,14 @@ impl<'lt> AbstractDataChunk for DataChunk<'lt> {
         match self {
             Self::Aligned(aligned) => aligned.data(),
             Self::Mbuf(mbuf) => mbuf,
-            DataChunk::Owned(owned) => &owned.data,
+            Self::Owned(owned) => &owned.data,
         }
     }
     fn hash(&self) -> &[u8] {
         match self {
             Self::Aligned(aligned) => aligned.hash_ref(),
             Self::Mbuf(mbuf) => mbuf.get_metadata(),
-            DataChunk::Owned(owned) => &owned.hash,
+            Self::Owned(owned) => &owned.hash,
         }
     }
 }
