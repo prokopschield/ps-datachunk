@@ -27,7 +27,7 @@ pub struct OwnedDataChunk {
 
 /// represents a chunk of data that is either owned or pointed to
 pub enum DataChunk<'lt> {
-    Mbuf(&'lt mut Mbuf<'lt, [u8; 50], u8>),
+    Mbuf(&'lt Mbuf<'lt, [u8; 50], u8>),
     Owned(OwnedDataChunk),
     Aligned(AlignedDataChunk),
 }
