@@ -158,6 +158,31 @@ impl<'lt> Into<OwnedDataChunk> for DataChunk<'lt> {
 }
 
 impl<'lt> DataChunk<'lt> {
+    pub fn data(&self) -> &[u8] {
+        match self {
+            Self::Aligned(aligned) => aligned.data(),
+            Self::Mbuf(mbuf) => mbuf,
+            Self::Owned(owned) => &owned.data,
+        }
+    }
+
+    pub fn hash_ref(&self) -> &[u8] {
+        match self {
+            Self::Aligned(aligned) => aligned.hash_ref(),
+            Self::Mbuf(mbuf) => mbuf.get_metadata(),
+            Self::Owned(owned) => &owned.hash,
+        }
+    }
+
+    pub fn hash(&self) -> [u8; 50] {
+        let result: Result<[u8; 50], _> = self.hash_ref().try_into();
+
+        match result {
+            Ok(hash) => hash,
+            Err(_) => ps_hash::hash(self.data()).into(),
+        }
+    }
+
     #[inline(always)]
     /// Unwraps this [DataChunk] into an `OwnedDataChunk`.
     /// - `DataChunk::Mbuf()` allocates a new `OwnedDataChunk`.
