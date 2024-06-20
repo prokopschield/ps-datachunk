@@ -16,6 +16,8 @@ pub enum PsDataChunkError {
     InvalidChecksum,
     #[error("This should never happen: {0}")]
     ShouldNotHaveFailed(&'static str),
+    #[error("DataChunk content does not match the type it is being interpreted as")]
+    TypeError,
 }
 
 impl PsDataChunkError {
