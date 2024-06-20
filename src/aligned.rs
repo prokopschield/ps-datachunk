@@ -206,7 +206,7 @@ impl AlignedDataChunk {
             rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
     {
         let result = rkyv::check_archived_root::<T>(data);
-        let value = result.map_err(|_| PsDataChunkError::DeserializationError)?;
+        let value = result.map_err(|_| PsDataChunkError::TypeError)?;
 
         Ok(value)
     }
