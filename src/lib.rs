@@ -2,10 +2,12 @@ pub mod aligned;
 pub mod deserializer;
 pub mod error;
 pub mod serializer;
+pub mod typed;
 pub use aligned::AlignedDataChunk;
 pub use error::PsDataChunkError;
 pub use ps_cypher::Compressor;
 pub use ps_mbuf::Mbuf;
+pub use typed::TypedDataChunk;
 
 #[inline(always)]
 /// returns the first `50` bytes of a [str] as a `[u8; 50]`
