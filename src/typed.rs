@@ -14,17 +14,15 @@ pub struct TypedDataChunk<'lt, T: rkyv::Archive> {
 pub fn check_byte_layout<'lt, T>(bytes: &[u8]) -> bool
 where
     T: Archive,
-    T::Archived: CheckBytes<DefaultValidator<'lt>> + 'lt,
+    T::Archived: for<'a> CheckBytes<DefaultValidator<'a>>,
 {
-    let fake: &'lt [u8] = unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) };
-
-    rkyv::check_archived_root::<'lt, T>(fake).is_ok()
+    rkyv::check_archived_root::<T>(bytes).is_ok()
 }
 
 impl<'lt, T> TryFrom<DataChunk<'lt>> for TypedDataChunk<'lt, T>
 where
     T: Archive,
-    T::Archived: CheckBytes<DefaultValidator<'lt>> + 'lt,
+    T::Archived: for<'a> CheckBytes<DefaultValidator<'a>>,
 {
     type Error = PsDataChunkError;
 
