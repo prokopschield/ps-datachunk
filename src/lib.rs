@@ -268,6 +268,17 @@ impl<'lt> DataChunk<'lt> {
             DataChunk::Aligned(_) => self.encrypt(compressor),
         }
     }
+
+    pub fn guarantee_alignment<T>(self) -> DataChunk<'lt> {
+        let align_size = std::mem::align_of::<T>();
+        let remainder = self.data().as_ptr() as usize % align_size;
+
+        if remainder == 0 {
+            self
+        } else {
+            AlignedDataChunk::from(self).into()
+        }
+    }
 }
 
 impl EncryptedDataChunk {
