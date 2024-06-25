@@ -1,4 +1,5 @@
 pub mod aligned;
+pub mod borrowed;
 pub mod error;
 pub mod owned;
 pub mod typed;
