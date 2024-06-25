@@ -1,6 +1,5 @@
-use std::ops::Deref;
-
 use ps_hash::Hash;
+use std::ops::Deref;
 
 pub enum HashCow<'lt> {
     Borrowed(&'lt Hash),
