@@ -220,6 +220,15 @@ impl AlignedDataChunk {
     }
 }
 
+impl DataChunkTrait for AlignedDataChunk {
+    fn data_ref(&self) -> &[u8] {
+        self.data_ref()
+    }
+    fn hash_ref(&self) -> &[u8] {
+        self.hash_ref()
+    }
+}
+
 impl<'lt> DataChunk<'lt> {
     pub fn try_from<
         const S: usize,

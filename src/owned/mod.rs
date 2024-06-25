@@ -4,6 +4,7 @@ pub mod serializer;
 use crate::aligned::rup;
 use crate::aligned::HSIZE;
 use crate::Compressor;
+use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
 use crate::PsDataChunkError;
 use ps_hash::Hash;
@@ -151,5 +152,14 @@ impl OwnedDataChunk {
         self.data.truncate(data_length);
 
         return encrypted;
+    }
+}
+
+impl DataChunkTrait for OwnedDataChunk {
+    fn data_ref(&self) -> &[u8] {
+        self.data_ref()
+    }
+    fn hash_ref(&self) -> &[u8] {
+        self.hash_ref()
     }
 }

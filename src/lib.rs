@@ -18,11 +18,26 @@ pub fn convert_hash(hash: &str) -> Result<[u8; 50], PsDataChunkError> {
     )
 }
 
+/// represents any representation of a chunk of data
+pub trait DataChunkTrait {
+    fn data_ref(&self) -> &[u8];
+    fn hash_ref(&self) -> &[u8];
+}
+
 /// represents a chunk of data that is either owned or pointed to
 pub enum DataChunk<'lt> {
     Mbuf(&'lt Mbuf<'lt, [u8; 50], u8>),
     Owned(OwnedDataChunk),
     Aligned(AlignedDataChunk),
+}
+
+impl<'lt> DataChunkTrait for DataChunk<'lt> {
+    fn data_ref(&self) -> &[u8] {
+        self.data_ref()
+    }
+    fn hash_ref(&self) -> &[u8] {
+        self.hash_ref()
+    }
 }
 
 /// represents an encrypted chunk of data and the key needed to decrypt it
