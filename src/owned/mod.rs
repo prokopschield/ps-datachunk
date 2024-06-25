@@ -1,9 +1,12 @@
 pub mod deserializer;
 pub mod serializer;
 
+use crate::aligned::rup;
+use crate::aligned::HSIZE;
 use crate::Compressor;
 use crate::EncryptedDataChunk;
 use crate::PsDataChunkError;
+use ps_hash::Hash;
 
 #[derive(rkyv::Archive, rkyv::Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// represents an owned chunk of data
@@ -19,6 +22,34 @@ impl OwnedDataChunk {
 
     pub fn hash_ref(&self) -> &[u8] {
         &self.hash
+    }
+
+    /// Creates an OwnedDataChunk from its constituent parts
+    /// # Safety
+    /// - `hash` must be the hash of `data`
+    /// - use `from_data()` if you cannot ensure this
+    pub fn from_parts(data: Vec<u8>, hash: Hash) -> Self {
+        Self {
+            data,
+            hash: hash.into(),
+        }
+    }
+
+    /// calculates the hash of `data` and returns an `OwnedDataChunk`
+    pub fn from_data(data: Vec<u8>) -> Self {
+        let hash = ps_hash::hash(&data);
+
+        Self::from_parts(data, hash)
+    }
+
+    /// creates an `OwnedDataChunk` with given `data`
+    pub fn from_data_ref(data: &[u8]) -> Self {
+        let reserved_size = rup(data.len(), 6) + rup(HSIZE, 6);
+        let mut data_vec = Vec::with_capacity(reserved_size);
+
+        data_vec.extend_from_slice(data);
+
+        Self::from_data(data_vec)
     }
 
     #[inline(always)]
