@@ -13,6 +13,14 @@ pub struct OwnedDataChunk {
 }
 
 impl OwnedDataChunk {
+    pub fn data_ref(&self) -> &[u8] {
+        &self.data
+    }
+
+    pub fn hash_ref(&self) -> &[u8] {
+        &self.hash
+    }
+
     #[inline(always)]
     /// converts this `OwnedDataChunk` into a `Vec<u8>`
     /// - extends `self.hash`
