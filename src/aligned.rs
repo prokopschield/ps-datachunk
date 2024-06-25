@@ -147,7 +147,7 @@ impl<'lt> From<&'lt Mbuf<'lt, [u8; 50], u8>> for AlignedDataChunk {
 
 impl From<&OwnedDataChunk> for AlignedDataChunk {
     fn from(value: &OwnedDataChunk) -> Self {
-        Self::new_with_hash(&value.data, &value.hash)
+        Self::new_with_hash(value.data_ref(), value.hash_ref())
     }
 }
 
@@ -170,11 +170,11 @@ impl<'lt> From<DataChunk<'lt>> for AlignedDataChunk {
     }
 }
 
-impl Into<OwnedDataChunk> for AlignedDataChunk {
+impl Into<OwnedDataChunk> for &AlignedDataChunk {
     fn into(self) -> OwnedDataChunk {
-        OwnedDataChunk {
-            hash: self.hash(),
-            data: self.data_ref().to_vec(),
+        match OwnedDataChunk::deserialize(&self.inner) {
+            Ok(owned) => owned,
+            Err(_) => OwnedDataChunk::from_data_ref(self.data_ref()),
         }
     }
 }
@@ -238,7 +238,7 @@ impl<'lt> DataChunk<'lt> {
         match self {
             Self::Aligned(aligned) => aligned.try_as::<T>(),
             Self::Mbuf(mbuf) => AlignedDataChunk::try_bytes_as::<T>(mbuf),
-            Self::Owned(owned) => AlignedDataChunk::try_bytes_as::<T>(&owned.data),
+            Self::Owned(owned) => AlignedDataChunk::try_bytes_as::<T>(owned.data_ref()),
         }
     }
 

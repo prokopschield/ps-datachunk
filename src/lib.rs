@@ -52,7 +52,7 @@ impl<'lt> DataChunk<'lt> {
         match self {
             Self::Aligned(aligned) => aligned.data_ref(),
             Self::Mbuf(mbuf) => mbuf,
-            Self::Owned(owned) => &owned.data,
+            Self::Owned(owned) => owned.data_ref(),
         }
     }
 
@@ -60,7 +60,7 @@ impl<'lt> DataChunk<'lt> {
         match self {
             Self::Aligned(aligned) => aligned.hash_ref(),
             Self::Mbuf(mbuf) => mbuf.get_metadata(),
-            Self::Owned(owned) => &owned.hash,
+            Self::Owned(owned) => owned.hash_ref(),
         }
     }
 
@@ -75,15 +75,13 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Unwraps this [DataChunk] into an `OwnedDataChunk`.
-    /// - `DataChunk::Mbuf()` allocates a new `OwnedDataChunk`.
+    /// - `DataChunk::Mbuf()` allocates a new `OwnedDataChunk`, recalculates hash
+    /// - `DataChunk::Aligned()` indirectly invokes the OwnedDataChunk deserializer
     pub fn into_owned(self) -> OwnedDataChunk {
         match self {
-            DataChunk::Mbuf(mbuf) => OwnedDataChunk {
-                data: mbuf.to_vec(),
-                hash: mbuf.get_metadata().to_owned(),
-            },
+            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf),
             DataChunk::Owned(chunk) => chunk,
-            DataChunk::Aligned(aligned) => aligned.into(),
+            DataChunk::Aligned(aligned) => (&aligned).into(),
         }
     }
 
@@ -91,15 +89,9 @@ impl<'lt> DataChunk<'lt> {
     /// Gets an owned copy of this [DataChunk].
     pub fn to_owned(&self) -> OwnedDataChunk {
         match self {
-            DataChunk::Mbuf(mbuf) => OwnedDataChunk {
-                data: mbuf.to_vec(),
-                hash: mbuf.get_metadata().to_owned(),
-            },
+            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf),
             DataChunk::Owned(chunk) => chunk.clone(),
-            DataChunk::Aligned(aligned) => OwnedDataChunk {
-                data: aligned.data_ref().to_vec(),
-                hash: aligned.hash(),
-            },
+            DataChunk::Aligned(aligned) => aligned.into(),
         }
     }
 
@@ -191,15 +183,12 @@ mod tests {
         let compressor = Compressor::new();
         let original_data = "Neboť tak Bůh miluje svět, že dal [svého] jediného Syna, aby žádný, kdo v něho věří, nezahynul, ale měl život věčný. Vždyť Bůh neposlal [svého] Syna na svět, aby svět odsoudil, ale aby byl svět skrze něj zachráněn.".as_bytes().to_owned();
 
-        let data_chunk = DataChunk::Owned(OwnedDataChunk {
-            hash: ps_hash::hash(&original_data).into(),
-            data: original_data.clone(),
-        });
+        let data_chunk = DataChunk::Owned(OwnedDataChunk::from_data_ref(&original_data));
 
         let encrypted_chunk = data_chunk.encrypt(&compressor)?;
         let decrypted_chunk = encrypted_chunk.decrypt(&compressor)?;
 
-        assert_eq!(decrypted_chunk.data, original_data);
+        assert_eq!(decrypted_chunk.data_ref(), original_data);
 
         Ok(())
     }
@@ -208,16 +197,13 @@ mod tests {
     fn test_serialization() -> Result<(), PsDataChunkError> {
         let original_data = vec![1, 2, 3, 4, 5];
         let hash = ps_hash::hash(&original_data).into();
-        let owned_chunk = OwnedDataChunk {
-            hash,
-            data: original_data.clone(),
-        };
+        let owned_chunk = OwnedDataChunk::from_parts(original_data.to_vec(), hash);
         let data_chunk = DataChunk::Owned(owned_chunk);
 
         let serialized = data_chunk.serialize();
         let deserialized = OwnedDataChunk::deserialize(&serialized)?;
 
-        assert_eq!(deserialized.data, original_data);
+        assert_eq!(deserialized.data_ref(), original_data);
 
         Ok(())
     }

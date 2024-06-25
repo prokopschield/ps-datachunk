@@ -11,8 +11,8 @@ use ps_hash::Hash;
 #[derive(rkyv::Archive, rkyv::Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// represents an owned chunk of data
 pub struct OwnedDataChunk {
-    pub hash: [u8; 50],
-    pub data: Vec<u8>,
+    hash: [u8; 50],
+    data: Vec<u8>,
 }
 
 impl OwnedDataChunk {
