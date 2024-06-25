@@ -48,9 +48,9 @@ impl<'lt> Into<OwnedDataChunk> for DataChunk<'lt> {
 }
 
 impl<'lt> DataChunk<'lt> {
-    pub fn data(&self) -> &[u8] {
+    pub fn data_ref(&self) -> &[u8] {
         match self {
-            Self::Aligned(aligned) => aligned.data(),
+            Self::Aligned(aligned) => aligned.data_ref(),
             Self::Mbuf(mbuf) => mbuf,
             Self::Owned(owned) => &owned.data,
         }
@@ -69,7 +69,7 @@ impl<'lt> DataChunk<'lt> {
 
         match result {
             Ok(hash) => hash,
-            Err(_) => ps_hash::hash(self.data()).into(),
+            Err(_) => ps_hash::hash(self.data_ref()).into(),
         }
     }
 
@@ -97,7 +97,7 @@ impl<'lt> DataChunk<'lt> {
             },
             DataChunk::Owned(chunk) => chunk.clone(),
             DataChunk::Aligned(aligned) => OwnedDataChunk {
-                data: aligned.data().to_vec(),
+                data: aligned.data_ref().to_vec(),
                 hash: aligned.hash(),
             },
         }
@@ -131,7 +131,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(&mbuf[..], key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
             Self::Aligned(aligned) => {
-                OwnedDataChunk::decrypt_bytes(aligned.data(), key, compressor)
+                OwnedDataChunk::decrypt_bytes(aligned.data_ref(), key, compressor)
             }
         }?;
 
@@ -165,7 +165,7 @@ impl<'lt> DataChunk<'lt> {
 
     pub fn guarantee_alignment<T>(self) -> DataChunk<'lt> {
         let align_size = std::mem::align_of::<T>();
-        let remainder = self.data().as_ptr() as usize % align_size;
+        let remainder = self.data_ref().as_ptr() as usize % align_size;
 
         if remainder == 0 {
             self

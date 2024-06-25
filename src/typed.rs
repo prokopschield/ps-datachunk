@@ -27,7 +27,7 @@ where
     type Error = PsDataChunkError;
 
     fn try_from(chunk: DataChunk<'lt>) -> Result<TypedDataChunk<'lt, T>, Self::Error> {
-        match check_byte_layout::<T>(chunk.data()) {
+        match check_byte_layout::<T>(chunk.data_ref()) {
             true => Ok(TypedDataChunk {
                 chunk,
                 _p: PhantomData,
@@ -44,6 +44,6 @@ where
     type Target = T::Archived;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { rkyv::archived_root::<T>(self.chunk.data()) }
+        unsafe { rkyv::archived_root::<T>(self.chunk.data_ref()) }
     }
 }

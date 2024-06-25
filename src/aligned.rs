@@ -96,7 +96,7 @@ impl AlignedDataChunk {
         }
     }
 
-    pub fn data(&self) -> &[u8] {
+    pub fn data_ref(&self) -> &[u8] {
         &self.inner[0..self.len()]
     }
 
@@ -127,7 +127,7 @@ impl AlignedDataChunk {
 
         let chunk = Self::deserialize_unchecked(bytes);
 
-        if ps_hash::hash(chunk.data()).as_bytes() != chunk.hash_ref() {
+        if ps_hash::hash(chunk.data_ref()).as_bytes() != chunk.hash_ref() {
             return Err(PsDataChunkError::InvalidChecksum);
         }
 
@@ -174,7 +174,7 @@ impl Into<OwnedDataChunk> for AlignedDataChunk {
     fn into(self) -> OwnedDataChunk {
         OwnedDataChunk {
             hash: self.hash(),
-            data: self.data().to_vec(),
+            data: self.data_ref().to_vec(),
         }
     }
 }
@@ -216,7 +216,7 @@ impl AlignedDataChunk {
         <T as rkyv::Archive>::Archived:
             rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
     {
-        Self::try_bytes_as::<T>(self.data())
+        Self::try_bytes_as::<T>(self.data_ref())
     }
 }
 
