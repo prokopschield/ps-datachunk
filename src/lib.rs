@@ -232,7 +232,11 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Decrypts this [DataChunk] with a given key.
-    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<Self, PsDataChunkError> {
+    pub fn decrypt(
+        &self,
+        key: &[u8],
+        compressor: &Compressor,
+    ) -> Result<OwnedDataChunk, PsDataChunkError> {
         let owned = match self {
             Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(&mbuf[..], key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
@@ -241,7 +245,7 @@ impl<'lt> DataChunk<'lt> {
             }
         }?;
 
-        Ok(owned.into())
+        Ok(owned)
     }
 
     #[inline(always)]
