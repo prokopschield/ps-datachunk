@@ -11,6 +11,7 @@ pub use error::PsDataChunkError;
 pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
+pub use ps_hash::Hash;
 pub use ps_mbuf::Mbuf;
 pub use typed::TypedDataChunk;
 
@@ -40,7 +41,7 @@ impl<'lt> DataChunkTrait for DataChunk<'lt> {
 /// represents an encrypted chunk of data and the key needed to decrypt it
 pub struct EncryptedDataChunk {
     pub chunk: OwnedDataChunk,
-    pub key: [u8; 50],
+    pub key: std::sync::Arc<Hash>,
 }
 
 impl<'lt> Into<DataChunk<'lt>> for OwnedDataChunk {
@@ -195,7 +196,7 @@ impl<'lt> DataChunk<'lt> {
 impl EncryptedDataChunk {
     /// Decrypts this `EncryptedDataChunk`.
     pub fn decrypt(&self, compressor: &Compressor) -> Result<OwnedDataChunk, PsDataChunkError> {
-        OwnedDataChunk::decrypt(&self.chunk, &self.key, compressor)
+        OwnedDataChunk::decrypt(&self.chunk, self.key.as_bytes(), compressor)
     }
 }
 

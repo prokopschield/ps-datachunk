@@ -8,11 +8,12 @@ use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
 use crate::PsDataChunkError;
 use ps_hash::Hash;
+use std::sync::Arc;
 
-#[derive(rkyv::Archive, rkyv::Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// represents an owned chunk of data
 pub struct OwnedDataChunk {
-    hash: [u8; 50],
+    hash: Arc<Hash>,
     data: Vec<u8>,
 }
 
@@ -22,7 +23,7 @@ impl OwnedDataChunk {
     }
 
     pub fn hash_ref(&self) -> &[u8] {
-        &self.hash
+        self.hash.as_bytes()
     }
 
     /// Creates an OwnedDataChunk from its constituent parts
@@ -58,7 +59,7 @@ impl OwnedDataChunk {
     /// - extends `self.hash`
     /// - returns `self.data`
     pub fn serialize_into(mut self) -> Vec<u8> {
-        serializer::serialize_vec_with_known_hash(&mut self.data, &self.hash);
+        serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());
 
         return self.data;
     }
@@ -70,7 +71,7 @@ impl OwnedDataChunk {
     /// - copies `self.hash` into the new `Vec<u8>`
     /// - returns the new `Vec<u8>`
     pub fn serialize(&self) -> Vec<u8> {
-        serializer::serialize_bytes_with_known_hash(&self.data, &self.hash)
+        serializer::serialize_bytes_with_known_hash(&self.data, self.hash_ref())
     }
 
     #[inline(always)]
@@ -145,7 +146,7 @@ impl OwnedDataChunk {
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
         let data_length = self.data.len();
 
-        serializer::serialize_vec_with_known_hash(&mut self.data, &self.hash);
+        serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());
 
         let encrypted = Self::encrypt_bytes(&self.data, compressor);
 
