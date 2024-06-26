@@ -13,6 +13,12 @@ impl<'lt, T: Into<Hash>> From<T> for HashCow<'lt> {
     }
 }
 
+impl<'lt> HashCow<'lt> {
+    pub fn borrow(hash: &'lt Hash) -> Self {
+        Self::Borrowed(hash)
+    }
+}
+
 impl<'lt> Deref for HashCow<'lt> {
     type Target = Hash;
 
