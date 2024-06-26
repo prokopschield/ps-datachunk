@@ -1,26 +1,15 @@
 use ps_hash::Hash;
 use std::ops::Deref;
+use std::sync::Arc;
 
 pub enum HashCow<'lt> {
     Borrowed(&'lt Hash),
-    Owned(Box<Hash>),
+    Owned(Arc<Hash>),
 }
 
-impl<'lt> From<&'lt Hash> for HashCow<'lt> {
-    fn from(hash: &'lt Hash) -> Self {
-        Self::Borrowed(hash)
-    }
-}
-
-impl<'lt> From<Box<Hash>> for HashCow<'lt> {
-    fn from(hash: Box<Hash>) -> Self {
-        Self::Owned(hash)
-    }
-}
-
-impl<'lt> From<Hash> for HashCow<'lt> {
-    fn from(hash: Hash) -> Self {
-        Self::from(Box::from(hash))
+impl<'lt, T: Into<Hash>> From<T> for HashCow<'lt> {
+    fn from(value: T) -> Self {
+        Self::Owned(Arc::from(value.into()))
     }
 }
 
