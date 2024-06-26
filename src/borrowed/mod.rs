@@ -1,7 +1,6 @@
 pub mod hashcow;
-
 use crate::DataChunkTrait;
-use hashcow::HashCow;
+pub use hashcow::HashCow;
 
 pub struct BorrowedDataChunk<'lt> {
     data: &'lt [u8],

@@ -5,6 +5,8 @@ pub mod mbuf;
 pub mod owned;
 pub mod typed;
 pub use aligned::AlignedDataChunk;
+pub use borrowed::BorrowedDataChunk;
+pub use borrowed::HashCow;
 pub use error::PsDataChunkError;
 pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;
