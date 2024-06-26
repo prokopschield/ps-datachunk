@@ -2,6 +2,7 @@ use ps_hash::Hash;
 use std::ops::Deref;
 use std::sync::Arc;
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum HashCow<'lt> {
     Borrowed(&'lt Hash),
     Owned(Arc<Hash>),
