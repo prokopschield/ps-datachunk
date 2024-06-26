@@ -1,10 +1,12 @@
 pub mod aligned;
 pub mod borrowed;
 pub mod error;
+pub mod mbuf;
 pub mod owned;
 pub mod typed;
 pub use aligned::AlignedDataChunk;
 pub use error::PsDataChunkError;
+pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
 pub use ps_mbuf::Mbuf;
