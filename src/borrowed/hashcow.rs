@@ -15,7 +15,11 @@ impl<'lt, T: Into<Hash>> From<T> for HashCow<'lt> {
 }
 
 impl<'lt> HashCow<'lt> {
-    pub fn borrow(hash: &'lt Hash) -> Self {
+    pub fn from_arc(hash: Arc<Hash>) -> Self {
+        Self::Owned(hash)
+    }
+
+    pub fn from_ref(hash: &'lt Hash) -> Self {
         Self::Borrowed(hash)
     }
 }
