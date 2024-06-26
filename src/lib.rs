@@ -14,15 +14,6 @@ pub use ps_cypher::Compressor;
 pub use ps_mbuf::Mbuf;
 pub use typed::TypedDataChunk;
 
-#[inline(always)]
-/// returns the first `50` bytes of a [str] as a `[u8; 50]`
-pub fn convert_hash(hash: &str) -> Result<[u8; 50], PsDataChunkError> {
-    PsDataChunkError::map_result(
-        hash.as_bytes()[..50].try_into(),
-        PsDataChunkError::HashConversionError,
-    )
-}
-
 /// represents any representation of a chunk of data
 pub trait DataChunkTrait {
     fn data_ref(&self) -> &[u8];

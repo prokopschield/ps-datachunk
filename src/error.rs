@@ -19,18 +19,3 @@ pub enum PsDataChunkError {
     #[error("DataChunk content does not match the type it is being interpreted as")]
     TypeError,
 }
-
-impl PsDataChunkError {
-    pub fn map_option<T>(item: Option<T>, error: PsDataChunkError) -> Result<T, Self> {
-        match item {
-            Some(value) => Ok(value),
-            None => Err(error),
-        }
-    }
-    pub fn map_result<T, E>(item: Result<T, E>, error: PsDataChunkError) -> Result<T, Self> {
-        match item {
-            Ok(value) => Ok(value),
-            Err(_) => Err(error),
-        }
-    }
-}
