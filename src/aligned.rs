@@ -154,7 +154,12 @@ impl From<&OwnedDataChunk> for AlignedDataChunk {
 impl<'lt> From<&DataChunk<'lt>> for AlignedDataChunk {
     fn from(value: &DataChunk) -> Self {
         match value {
-            DataChunk::Mbuf(mbuf) => AlignedDataChunk::new_with_hash(*mbuf, mbuf.get_metadata()),
+            DataChunk::Borrowed(borrowed) => {
+                AlignedDataChunk::new_with_hash(borrowed.data_ref(), borrowed.hash_ref())
+            }
+            DataChunk::Mbuf(mbuf) => {
+                AlignedDataChunk::new_with_hash(mbuf.data_ref(), mbuf.hash_ref())
+            }
             DataChunk::Owned(owned) => owned.into(),
             DataChunk::Aligned(aligned) => aligned.clone(),
         }
@@ -246,7 +251,8 @@ impl<'lt> DataChunk<'lt> {
     {
         match self {
             Self::Aligned(aligned) => aligned.try_as::<T>(),
-            Self::Mbuf(mbuf) => AlignedDataChunk::try_bytes_as::<T>(mbuf),
+            Self::Borrowed(borrowed) => AlignedDataChunk::try_bytes_as::<T>(borrowed.data_ref()),
+            Self::Mbuf(mbuf) => AlignedDataChunk::try_bytes_as::<T>(mbuf.data_ref()),
             Self::Owned(owned) => AlignedDataChunk::try_bytes_as::<T>(owned.data_ref()),
         }
     }

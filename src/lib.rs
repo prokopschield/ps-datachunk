@@ -22,9 +22,10 @@ pub trait DataChunkTrait {
 
 /// represents a chunk of data that is either owned or pointed to
 pub enum DataChunk<'lt> {
-    Mbuf(&'lt Mbuf<'lt, [u8; 50], u8>),
-    Owned(OwnedDataChunk),
     Aligned(AlignedDataChunk),
+    Borrowed(BorrowedDataChunk<'lt>),
+    Mbuf(MbufDataChunk<'lt>),
+    Owned(OwnedDataChunk),
 }
 
 impl<'lt> DataChunkTrait for DataChunk<'lt> {
@@ -51,6 +52,7 @@ impl<'lt> Into<DataChunk<'lt>> for OwnedDataChunk {
 impl<'lt> Into<OwnedDataChunk> for DataChunk<'lt> {
     fn into(self) -> OwnedDataChunk {
         match self {
+            Self::Borrowed(_) => self.to_owned(),
             Self::Mbuf(_) => self.to_owned(),
             Self::Owned(owned) => owned,
             Self::Aligned(_) => self.to_owned(),
@@ -61,8 +63,9 @@ impl<'lt> Into<OwnedDataChunk> for DataChunk<'lt> {
 impl<'lt> DataChunk<'lt> {
     pub fn data_ref(&self) -> &[u8] {
         match self {
+            Self::Borrowed(borrowed) => borrowed.data_ref(),
             Self::Aligned(aligned) => aligned.data_ref(),
-            Self::Mbuf(mbuf) => mbuf,
+            Self::Mbuf(mbuf) => mbuf.data_ref(),
             Self::Owned(owned) => owned.data_ref(),
         }
     }
@@ -70,7 +73,8 @@ impl<'lt> DataChunk<'lt> {
     pub fn hash_ref(&self) -> &[u8] {
         match self {
             Self::Aligned(aligned) => aligned.hash_ref(),
-            Self::Mbuf(mbuf) => mbuf.get_metadata(),
+            Self::Borrowed(borrowed) => borrowed.hash_ref(),
+            Self::Mbuf(mbuf) => mbuf.hash_ref(),
             Self::Owned(owned) => owned.hash_ref(),
         }
     }
@@ -86,11 +90,14 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Unwraps this [DataChunk] into an `OwnedDataChunk`.
+    /// - `DataChunk::Borrowed()` allocates a new `OwnedDataChunk`, recalculates hash
     /// - `DataChunk::Mbuf()` allocates a new `OwnedDataChunk`, recalculates hash
     /// - `DataChunk::Aligned()` indirectly invokes the OwnedDataChunk deserializer
+    /// - `DataChunk::Owned()` is a no-op
     pub fn into_owned(self) -> OwnedDataChunk {
         match self {
-            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf),
+            DataChunk::Borrowed(borrowed) => OwnedDataChunk::from_data_ref(borrowed.data_ref()),
+            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf.data_ref()),
             DataChunk::Owned(chunk) => chunk,
             DataChunk::Aligned(aligned) => (&aligned).into(),
         }
@@ -100,7 +107,8 @@ impl<'lt> DataChunk<'lt> {
     /// Gets an owned copy of this [DataChunk].
     pub fn to_owned(&self) -> OwnedDataChunk {
         match self {
-            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf),
+            DataChunk::Borrowed(borrowed) => OwnedDataChunk::from_data_ref(borrowed.data_ref()),
+            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf.data_ref()),
             DataChunk::Owned(chunk) => chunk.clone(),
             DataChunk::Aligned(aligned) => aligned.into(),
         }
@@ -111,6 +119,7 @@ impl<'lt> DataChunk<'lt> {
     /// - `DataChunk::Mbuf()` is copied via `.to_owned()`
     pub fn serialize_into(self) -> Vec<u8> {
         match self {
+            Self::Borrowed(_) => self.to_owned().serialize_into(),
             Self::Mbuf(_) => self.to_owned().serialize_into(),
             Self::Owned(chunk) => chunk.serialize_into(),
             Self::Aligned(aligned) => aligned.serialize_into().to_vec(),
@@ -131,7 +140,10 @@ impl<'lt> DataChunk<'lt> {
         compressor: &Compressor,
     ) -> Result<OwnedDataChunk, PsDataChunkError> {
         let owned = match self {
-            Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(&mbuf[..], key, compressor),
+            Self::Borrowed(borrowed) => {
+                OwnedDataChunk::decrypt_bytes(borrowed.data_ref(), key, compressor)
+            }
+            Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(mbuf.data_ref(), key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
             Self::Aligned(aligned) => {
                 OwnedDataChunk::decrypt_bytes(aligned.data_ref(), key, compressor)
@@ -145,6 +157,7 @@ impl<'lt> DataChunk<'lt> {
     /// Encrypts this [DataChunk].
     pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
         match self {
+            DataChunk::Borrowed(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
             DataChunk::Mbuf(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
             DataChunk::Owned(owned) => owned.encrypt(compressor),
             DataChunk::Aligned(aligned) => {
@@ -160,6 +173,7 @@ impl<'lt> DataChunk<'lt> {
         compressor: &Compressor,
     ) -> Result<EncryptedDataChunk, PsDataChunkError> {
         match self {
+            DataChunk::Borrowed(_) => self.encrypt(compressor),
             DataChunk::Mbuf(_) => self.encrypt(compressor),
             DataChunk::Owned(chunk) => chunk.encrypt_mut(compressor),
             DataChunk::Aligned(_) => self.encrypt(compressor),
