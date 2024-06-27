@@ -1,5 +1,6 @@
 pub mod aligned;
 pub mod borrowed;
+pub mod encrypted;
 pub mod error;
 pub mod mbuf;
 pub mod owned;
@@ -7,6 +8,7 @@ pub mod typed;
 pub use aligned::AlignedDataChunk;
 pub use borrowed::BorrowedDataChunk;
 pub use borrowed::HashCow;
+pub use encrypted::EncryptedDataChunk;
 pub use error::PsDataChunkError;
 pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;
@@ -39,12 +41,6 @@ impl<'lt> DataChunkTrait for DataChunk<'lt> {
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
     }
-}
-
-/// represents an encrypted chunk of data and the key needed to decrypt it
-pub struct EncryptedDataChunk {
-    pub chunk: OwnedDataChunk,
-    pub key: std::sync::Arc<Hash>,
 }
 
 impl<'lt> Into<DataChunk<'lt>> for OwnedDataChunk {
@@ -193,13 +189,6 @@ impl<'lt> DataChunk<'lt> {
         } else {
             AlignedDataChunk::from(self).into()
         }
-    }
-}
-
-impl EncryptedDataChunk {
-    /// Decrypts this `EncryptedDataChunk`.
-    pub fn decrypt(&self, compressor: &Compressor) -> Result<OwnedDataChunk, PsDataChunkError> {
-        OwnedDataChunk::decrypt(&self.chunk, self.key.as_bytes(), compressor)
     }
 }
 
