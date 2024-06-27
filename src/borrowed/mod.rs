@@ -26,4 +26,7 @@ impl<'lt> DataChunkTrait for BorrowedDataChunk<'lt> {
     fn hash_ref(&self) -> &[u8] {
         self.hash.as_bytes()
     }
+    fn hash(&self) -> HashCow {
+        (&self.hash).clone()
+    }
 }

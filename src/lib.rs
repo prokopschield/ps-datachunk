@@ -19,6 +19,9 @@ pub use typed::TypedDataChunk;
 pub trait DataChunkTrait {
     fn data_ref(&self) -> &[u8];
     fn hash_ref(&self) -> &[u8];
+    fn hash(&self) -> HashCow {
+        ps_hash::hash(self.data_ref()).into()
+    }
 }
 
 /// represents a chunk of data that is either owned or pointed to

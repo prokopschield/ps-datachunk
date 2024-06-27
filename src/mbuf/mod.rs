@@ -1,4 +1,4 @@
-use crate::DataChunkTrait;
+use crate::{DataChunkTrait, HashCow};
 use ps_hash::Hash;
 use ps_mbuf::Mbuf;
 
@@ -19,5 +19,9 @@ impl<'lt> DataChunkTrait for MbufDataChunk<'lt> {
 
     fn hash_ref(&self) -> &[u8] {
         self.inner.get_metadata().as_bytes()
+    }
+
+    fn hash(&self) -> HashCow<'lt> {
+        HashCow::Borrowed(self.inner.get_metadata())
     }
 }
