@@ -30,3 +30,9 @@ impl<'lt> DataChunkTrait for BorrowedDataChunk<'lt> {
         (&self.hash).clone()
     }
 }
+
+impl<'lt, T: DataChunkTrait> From<&'lt T> for BorrowedDataChunk<'lt> {
+    fn from(chunk: &'lt T) -> Self {
+        Self::from_parts(chunk.data_ref(), chunk.hash())
+    }
+}
