@@ -21,8 +21,21 @@ pub use typed::TypedDataChunk;
 pub trait DataChunkTrait {
     fn data_ref(&self) -> &[u8];
     fn hash_ref(&self) -> &[u8];
+
     fn hash(&self) -> HashCow {
         ps_hash::hash(self.data_ref()).into()
+    }
+
+    fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
+        OwnedDataChunk::encrypt_bytes(self.data_ref(), compressor)
+    }
+
+    fn decrypt(
+        &self,
+        key: &[u8],
+        compressor: &Compressor,
+    ) -> Result<OwnedDataChunk, PsDataChunkError> {
+        OwnedDataChunk::decrypt_bytes(self.data_ref(), key, compressor)
     }
 }
 
