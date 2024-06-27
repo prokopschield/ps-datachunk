@@ -2,6 +2,7 @@ use crate::{DataChunkTrait, HashCow};
 use ps_hash::Hash;
 use ps_mbuf::Mbuf;
 
+#[derive(Clone, Copy)]
 pub struct MbufDataChunk<'lt> {
     inner: &'lt Mbuf<'lt, Hash, u8>,
 }

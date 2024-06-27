@@ -4,6 +4,7 @@ use crate::PsDataChunkError;
 use ps_cypher::Compressor;
 use ps_hash::Hash;
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// represents an encrypted chunk of data and the key needed to decrypt it
 pub struct EncryptedDataChunk {
     pub chunk: OwnedDataChunk,

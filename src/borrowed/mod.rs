@@ -2,6 +2,7 @@ pub mod hashcow;
 use crate::DataChunkTrait;
 pub use hashcow::HashCow;
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BorrowedDataChunk<'lt> {
     data: &'lt [u8],
     hash: HashCow<'lt>,
