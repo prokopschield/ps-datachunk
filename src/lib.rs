@@ -37,6 +37,10 @@ pub trait DataChunkTrait {
     ) -> Result<OwnedDataChunk, PsDataChunkError> {
         OwnedDataChunk::decrypt_bytes(self.data_ref(), key, compressor)
     }
+
+    fn to_datachunk(&self) -> DataChunk {
+        DataChunk::Borrowed(BorrowedDataChunk::from_parts(self.data_ref(), self.hash()))
+    }
 }
 
 /// represents a chunk of data that is either owned or pointed to
