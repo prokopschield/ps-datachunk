@@ -19,6 +19,15 @@ where
     rkyv::check_archived_root::<T>(bytes).is_ok()
 }
 
+impl<'lt, T: Archive> TypedDataChunk<'lt, T> {
+    pub unsafe fn from_chunk_unchecked(chunk: DataChunk<'lt>) -> Self {
+        Self {
+            chunk,
+            _p: PhantomData,
+        }
+    }
+}
+
 impl<'lt, T> TryFrom<DataChunk<'lt>> for TypedDataChunk<'lt, T>
 where
     T: Archive,
@@ -28,10 +37,7 @@ where
 
     fn try_from(chunk: DataChunk<'lt>) -> Result<TypedDataChunk<'lt, T>, Self::Error> {
         match check_byte_layout::<T>(chunk.data_ref()) {
-            true => Ok(TypedDataChunk {
-                chunk,
-                _p: PhantomData,
-            }),
+            true => Ok(unsafe { TypedDataChunk::from_chunk_unchecked(chunk) }),
             false => Err(PsDataChunkError::TypeError),
         }
     }
