@@ -41,6 +41,13 @@ pub trait DataChunkTrait {
     fn to_datachunk(&self) -> DataChunk {
         DataChunk::Borrowed(BorrowedDataChunk::from_parts(self.data_ref(), self.hash()))
     }
+
+    fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>, PsDataChunkError>
+    where
+        T::Archived: for<'a> rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'a>>,
+    {
+        self.to_datachunk().try_into()
+    }
 }
 
 /// represents a chunk of data that is either owned or pointed to
