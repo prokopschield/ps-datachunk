@@ -31,18 +31,15 @@ impl OwnedDataChunk {
     /// # Safety
     /// - `hash` must be the hash of `data`
     /// - use `from_data()` if you cannot ensure this
-    pub fn from_parts(data: Vec<u8>, hash: Hash) -> Self {
-        Self {
-            data,
-            hash: hash.into(),
-        }
+    pub fn from_parts(data: Vec<u8>, hash: Arc<Hash>) -> Self {
+        Self { data, hash }
     }
 
     /// calculates the hash of `data` and returns an `OwnedDataChunk`
     pub fn from_data(data: Vec<u8>) -> Self {
         let hash = ps_hash::hash(&data);
 
-        Self::from_parts(data, hash)
+        Self::from_parts(data, hash.into())
     }
 
     /// creates an `OwnedDataChunk` with given `data`
