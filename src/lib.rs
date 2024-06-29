@@ -39,7 +39,25 @@ pub trait DataChunkTrait {
     }
 
     fn to_datachunk(&self) -> DataChunk {
-        DataChunk::Borrowed(BorrowedDataChunk::from_parts(self.data_ref(), self.hash()))
+        DataChunk::Borrowed(self.borrow())
+    }
+
+    fn align(&self) -> AlignedDataChunk {
+        AlignedDataChunk::new_with_hash(self.data_ref(), self.hash_ref())
+    }
+
+    fn borrow(&self) -> BorrowedDataChunk {
+        BorrowedDataChunk::from_parts(self.data_ref(), self.hash())
+    }
+
+    fn to_owned(&self) -> OwnedDataChunk {
+        let data_ref = self.data_ref();
+        let reserved_size = aligned::rup(data_ref.len(), 6) + aligned::rup(aligned::HSIZE, 6);
+        let mut data_vec = Vec::with_capacity(reserved_size);
+
+        data_vec.extend_from_slice(data_ref);
+
+        OwnedDataChunk::from_parts(data_vec, self.hash().into())
     }
 
     fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>, PsDataChunkError>
