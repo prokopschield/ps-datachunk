@@ -24,6 +24,15 @@ impl<'lt> HashCow<'lt> {
     }
 }
 
+impl<'lt> Into<Arc<Hash>> for &HashCow<'lt> {
+    fn into(self) -> Arc<Hash> {
+        match self {
+            HashCow::Borrowed(borrowed) => Arc::from(**borrowed),
+            HashCow::Owned(owned) => owned.clone(),
+        }
+    }
+}
+
 impl<'lt> Deref for HashCow<'lt> {
     type Target = Hash;
 
