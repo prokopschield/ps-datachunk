@@ -33,6 +33,12 @@ impl<'lt> Into<Arc<Hash>> for &HashCow<'lt> {
     }
 }
 
+impl<'lt> Into<Arc<Hash>> for HashCow<'lt> {
+    fn into(self) -> Arc<Hash> {
+        (&self).into()
+    }
+}
+
 impl<'lt> Deref for HashCow<'lt> {
     type Target = Hash;
 
