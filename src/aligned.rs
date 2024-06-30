@@ -88,11 +88,10 @@ impl AlignedDataChunk {
         &self.inner[range]
     }
 
-    pub fn hash(&self) -> [u8; 50] {
-        if let Ok(hash) = &self.hash_ref().try_into() {
-            *hash
-        } else {
-            [0u8; 50]
+    pub fn hash(&self) -> Hash {
+        match Hash::try_from(self.hash_ref()) {
+            Ok(hash) => hash,
+            Err(_) => ps_hash::hash(self.data_ref()),
         }
     }
 
