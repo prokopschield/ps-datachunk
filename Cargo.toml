@@ -12,8 +12,8 @@ opt-level = 3
 opt-level = 3
 
 [dependencies]
-ps-cypher = "0.1.0-6"
-ps-hash = "0.1.0-7"
+ps-cypher = "0.1.0-7"
+ps-hash = "0.1.0-8"
 ps-mbuf = "0.1.0-3"
 rkyv = { version = "0.7.44", features = ["validation"] }
 thiserror = "1.0.61"
