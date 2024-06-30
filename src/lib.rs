@@ -85,9 +85,27 @@ impl<'lt> DataChunkTrait for DataChunk<'lt> {
     }
 }
 
-impl<'lt> Into<DataChunk<'lt>> for OwnedDataChunk {
-    fn into(self) -> DataChunk<'lt> {
-        DataChunk::Owned(self)
+impl<'lt> From<AlignedDataChunk> for DataChunk<'lt> {
+    fn from(chunk: AlignedDataChunk) -> Self {
+        Self::Aligned(chunk)
+    }
+}
+
+impl<'lt> From<BorrowedDataChunk<'lt>> for DataChunk<'lt> {
+    fn from(chunk: BorrowedDataChunk<'lt>) -> Self {
+        Self::Borrowed(chunk)
+    }
+}
+
+impl<'lt> From<MbufDataChunk<'lt>> for DataChunk<'lt> {
+    fn from(chunk: MbufDataChunk<'lt>) -> Self {
+        Self::Mbuf(chunk)
+    }
+}
+
+impl<'lt> From<OwnedDataChunk> for DataChunk<'lt> {
+    fn from(chunk: OwnedDataChunk) -> Self {
+        Self::Owned(chunk)
     }
 }
 

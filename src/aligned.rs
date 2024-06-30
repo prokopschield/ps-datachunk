@@ -184,12 +184,6 @@ impl Into<OwnedDataChunk> for &AlignedDataChunk {
     }
 }
 
-impl<'lt> Into<DataChunk<'lt>> for AlignedDataChunk {
-    fn into(self) -> DataChunk<'lt> {
-        DataChunk::Aligned(self)
-    }
-}
-
 impl AlignedDataChunk {
     pub fn try_from<
         const S: usize,
