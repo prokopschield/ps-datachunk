@@ -83,6 +83,9 @@ impl<'lt> DataChunkTrait for DataChunk<'lt> {
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
     }
+    fn hash(&self) -> HashCow {
+        self.hash()
+    }
 }
 
 impl<'lt> From<AlignedDataChunk> for DataChunk<'lt> {
