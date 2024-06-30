@@ -4,6 +4,7 @@ pub mod serializer;
 use crate::aligned::rup;
 use crate::aligned::HSIZE;
 use crate::Compressor;
+use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
 use crate::HashCow;
@@ -168,5 +169,14 @@ impl DataChunkTrait for OwnedDataChunk {
     }
     fn hash(&self) -> HashCow {
         HashCow::Owned(self.hash.clone())
+    }
+}
+
+impl<'lt> From<DataChunk<'lt>> for OwnedDataChunk {
+    fn from(value: DataChunk<'lt>) -> Self {
+        match value {
+            DataChunk::Owned(owned) => owned,
+            _ => OwnedDataChunk::from_data_ref_and_hash(value.data_ref(), value.hash().into()),
+        }
     }
 }

@@ -112,17 +112,6 @@ impl<'lt> From<OwnedDataChunk> for DataChunk<'lt> {
     }
 }
 
-impl<'lt> Into<OwnedDataChunk> for DataChunk<'lt> {
-    fn into(self) -> OwnedDataChunk {
-        match self {
-            Self::Borrowed(_) => self.to_owned(),
-            Self::Mbuf(_) => self.to_owned(),
-            Self::Owned(owned) => owned,
-            Self::Aligned(_) => self.to_owned(),
-        }
-    }
-}
-
 impl<'lt> DataChunk<'lt> {
     pub fn data_ref(&self) -> &[u8] {
         match self {
