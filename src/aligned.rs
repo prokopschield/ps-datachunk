@@ -225,6 +225,9 @@ impl DataChunkTrait for AlignedDataChunk {
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
     }
+    fn hash(&self) -> HashCow {
+        self.hash().into()
+    }
 }
 
 impl<'lt> DataChunk<'lt> {
