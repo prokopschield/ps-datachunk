@@ -8,19 +8,35 @@ pub enum HashCow<'lt> {
     Owned(Arc<Hash>),
 }
 
-impl<'lt, T: Into<Hash>> From<T> for HashCow<'lt> {
-    fn from(value: T) -> Self {
-        Self::Owned(Arc::from(value.into()))
-    }
-}
-
 impl<'lt> HashCow<'lt> {
     pub fn from_arc(hash: Arc<Hash>) -> Self {
         Self::Owned(hash)
     }
 
+    pub fn from_hash(hash: Hash) -> Self {
+        Self::from_arc(hash.into())
+    }
+
     pub fn from_ref(hash: &'lt Hash) -> Self {
         Self::Borrowed(hash)
+    }
+}
+
+impl<'lt> From<Arc<Hash>> for HashCow<'lt> {
+    fn from(hash: Arc<Hash>) -> Self {
+        Self::from_arc(hash)
+    }
+}
+
+impl<'lt> From<Hash> for HashCow<'lt> {
+    fn from(hash: Hash) -> Self {
+        Self::from_hash(hash)
+    }
+}
+
+impl<'lt> From<&'lt Hash> for HashCow<'lt> {
+    fn from(hash: &'lt Hash) -> Self {
+        Self::from_ref(hash)
     }
 }
 
