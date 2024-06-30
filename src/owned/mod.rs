@@ -42,14 +42,19 @@ impl OwnedDataChunk {
         Self::from_parts(data, hash.into())
     }
 
-    /// creates an `OwnedDataChunk` with given `data`
-    pub fn from_data_ref(data: &[u8]) -> Self {
+    /// creates an `OwnedDataChunk` with given `data` and `hash`
+    pub fn from_data_ref_and_hash(data: &[u8], hash: Arc<Hash>) -> Self {
         let reserved_size = rup(data.len(), 6) + rup(HSIZE, 6);
         let mut data_vec = Vec::with_capacity(reserved_size);
 
         data_vec.extend_from_slice(data);
 
-        Self::from_data(data_vec)
+        Self::from_parts(data_vec, hash)
+    }
+
+    /// creates an `OwnedDataChunk` with given `data`
+    pub fn from_data_ref(data: &[u8]) -> Self {
+        Self::from_data_ref_and_hash(data, ps_hash::hash(data).into())
     }
 
     #[inline(always)]
