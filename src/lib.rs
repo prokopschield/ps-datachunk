@@ -139,12 +139,12 @@ impl<'lt> DataChunk<'lt> {
         }
     }
 
-    pub fn hash(&self) -> [u8; 50] {
-        let result: Result<[u8; 50], _> = self.hash_ref().try_into();
-
-        match result {
-            Ok(hash) => hash,
-            Err(_) => ps_hash::hash(self.data_ref()).into(),
+    pub fn hash(&self) -> HashCow {
+        match self {
+            Self::Aligned(aligned) => aligned.hash().into(),
+            Self::Borrowed(borrowed) => borrowed.hash(),
+            Self::Mbuf(mbuf) => mbuf.hash(),
+            Self::Owned(owned) => owned.hash(),
         }
     }
 
