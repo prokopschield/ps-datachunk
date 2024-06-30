@@ -136,7 +136,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Aligned(aligned) => aligned.hash().into(),
             Self::Borrowed(borrowed) => borrowed.hash(),
             Self::Mbuf(mbuf) => mbuf.hash(),
-            Self::Owned(owned) => owned.hash(),
+            Self::Owned(owned) => owned.hash().into(),
         }
     }
 

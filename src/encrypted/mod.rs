@@ -26,6 +26,6 @@ impl DataChunkTrait for EncryptedDataChunk {
         self.chunk.hash_ref()
     }
     fn hash(&self) -> crate::HashCow {
-        self.chunk.hash()
+        self.chunk.hash().into()
     }
 }
