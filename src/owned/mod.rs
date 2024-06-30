@@ -28,7 +28,7 @@ impl OwnedDataChunk {
         self.hash.as_bytes()
     }
 
-    fn hash(&self) -> Arc<Hash> {
+    pub fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
     }
 
