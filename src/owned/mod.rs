@@ -28,6 +28,10 @@ impl OwnedDataChunk {
         self.hash.as_bytes()
     }
 
+    fn hash(&self) -> Arc<Hash> {
+        self.hash.clone()
+    }
+
     /// Creates an OwnedDataChunk from its constituent parts
     /// # Safety
     /// - `hash` must be the hash of `data`
@@ -168,7 +172,7 @@ impl DataChunkTrait for OwnedDataChunk {
         self.hash_ref()
     }
     fn hash(&self) -> HashCow {
-        HashCow::Owned(self.hash.clone())
+        HashCow::from_arc(self.hash())
     }
 }
 
