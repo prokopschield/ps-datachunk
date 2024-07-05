@@ -10,6 +10,7 @@ pub use borrowed::BorrowedDataChunk;
 pub use borrowed::HashCow;
 pub use encrypted::EncryptedDataChunk;
 pub use error::PsDataChunkError;
+pub use error::Result;
 pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
@@ -26,15 +27,11 @@ pub trait DataChunkTrait {
         ps_hash::hash(self.data_ref()).into()
     }
 
-    fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         OwnedDataChunk::encrypt_bytes(self.data_ref(), compressor)
     }
 
-    fn decrypt(
-        &self,
-        key: &[u8],
-        compressor: &Compressor,
-    ) -> Result<OwnedDataChunk, PsDataChunkError> {
+    fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<OwnedDataChunk> {
         OwnedDataChunk::decrypt_bytes(self.data_ref(), key, compressor)
     }
 
@@ -60,7 +57,7 @@ pub trait DataChunkTrait {
         OwnedDataChunk::from_parts(data_vec, self.hash().into())
     }
 
-    fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>, PsDataChunkError>
+    fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>>
     where
         T::Archived: for<'a> rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'a>>,
     {
@@ -186,11 +183,7 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Decrypts this [DataChunk] with a given key.
-    pub fn decrypt(
-        &self,
-        key: &[u8],
-        compressor: &Compressor,
-    ) -> Result<OwnedDataChunk, PsDataChunkError> {
+    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<OwnedDataChunk> {
         let owned = match self {
             Self::Borrowed(borrowed) => {
                 OwnedDataChunk::decrypt_bytes(borrowed.data_ref(), key, compressor)
@@ -207,7 +200,7 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
-    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         match self {
             DataChunk::Borrowed(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
             DataChunk::Mbuf(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
@@ -220,10 +213,7 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Encrypts this [DataChunk] using `self.data` if owned.
-    pub fn encrypt_mut(
-        &mut self,
-        compressor: &Compressor,
-    ) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt_mut(&mut self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         match self {
             DataChunk::Borrowed(_) => self.encrypt(compressor),
             DataChunk::Mbuf(_) => self.encrypt(compressor),
@@ -249,7 +239,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_encryption_decryption() -> Result<(), PsDataChunkError> {
+    fn test_encryption_decryption() -> Result<()> {
         let compressor = Compressor::new();
         let original_data = "Neboť tak Bůh miluje svět, že dal [svého] jediného Syna, aby žádný, kdo v něho věří, nezahynul, ale měl život věčný. Vždyť Bůh neposlal [svého] Syna na svět, aby svět odsoudil, ale aby byl svět skrze něj zachráněn.".as_bytes().to_owned();
 
@@ -264,7 +254,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialization() -> Result<(), PsDataChunkError> {
+    fn test_serialization() -> Result<()> {
         let original_data = vec![1, 2, 3, 4, 5];
         let hash = ps_hash::hash(&original_data).into();
         let owned_chunk = OwnedDataChunk::from_parts(original_data.to_vec(), hash);

@@ -119,7 +119,7 @@ impl AlignedDataChunk {
         Self { inner }
     }
 
-    pub fn deserialize(bytes: &[u8]) -> Result<Self, PsDataChunkError> {
+    pub fn deserialize(bytes: &[u8]) -> Result<Self> {
         if bytes.len() < HSIZE + SSIZE {
             return Err(PsDataChunkError::InvalidDataChunk);
         }
@@ -189,16 +189,14 @@ impl AlignedDataChunk {
         T: rkyv::Archive + rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<S>>,
     >(
         value: &T,
-    ) -> Result<Self, PsDataChunkError> {
+    ) -> Result<Self> {
         let data = rkyv::to_bytes(value).map_err(|_| PsDataChunkError::SerializationError)?;
         let chunk = Self::new_from_data_vec(data);
 
         Ok(chunk)
     }
 
-    pub fn try_bytes_as<'lt, T: rkyv::Archive>(
-        data: &'lt [u8],
-    ) -> Result<&'lt T::Archived, PsDataChunkError>
+    pub fn try_bytes_as<'lt, T: rkyv::Archive>(data: &'lt [u8]) -> Result<&'lt T::Archived>
     where
         <T as rkyv::Archive>::Archived:
             rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
@@ -209,7 +207,7 @@ impl AlignedDataChunk {
         Ok(value)
     }
 
-    pub fn try_as<'lt, T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived, PsDataChunkError>
+    pub fn try_as<'lt, T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
     where
         <T as rkyv::Archive>::Archived:
             rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
@@ -236,11 +234,11 @@ impl<'lt> DataChunk<'lt> {
         T: rkyv::Archive + rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<S>>,
     >(
         value: &T,
-    ) -> Result<Self, PsDataChunkError> {
+    ) -> Result<Self> {
         Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
     }
 
-    pub fn try_as<T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived, PsDataChunkError>
+    pub fn try_as<T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
     where
         <T as rkyv::Archive>::Archived:
             rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
@@ -266,7 +264,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_chunk_length_divisibility_and_part_alignment() -> Result<(), PsDataChunkError> {
+    fn test_chunk_length_divisibility_and_part_alignment() -> Result<()> {
         for i in 12..256 {
             let data = (vec![i as u8; i], ());
             let chunk = AlignedDataChunk::try_from::<4, _>(&data)?;

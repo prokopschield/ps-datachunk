@@ -1,6 +1,6 @@
 use crate::DataChunkTrait;
 use crate::OwnedDataChunk;
-use crate::PsDataChunkError;
+use crate::Result;
 use ps_cypher::Compressor;
 use ps_hash::Hash;
 
@@ -13,7 +13,7 @@ pub struct EncryptedDataChunk {
 
 impl EncryptedDataChunk {
     /// Decrypts this `EncryptedDataChunk`.
-    pub fn decrypt(&self, compressor: &Compressor) -> Result<OwnedDataChunk, PsDataChunkError> {
+    pub fn decrypt(&self, compressor: &Compressor) -> Result<OwnedDataChunk> {
         OwnedDataChunk::decrypt(&self.chunk, self.key.as_bytes(), compressor)
     }
 }

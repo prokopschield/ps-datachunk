@@ -15,3 +15,5 @@ pub enum PsDataChunkError {
     #[error("DataChunk content does not match the type it is being interpreted as")]
     TypeError,
 }
+
+pub type Result<T> = std::result::Result<T, PsDataChunkError>;

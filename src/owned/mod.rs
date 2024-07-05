@@ -8,7 +8,7 @@ use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
 use crate::HashCow;
-use crate::PsDataChunkError;
+use crate::Result;
 use ps_hash::Hash;
 use std::sync::Arc;
 
@@ -85,7 +85,7 @@ impl OwnedDataChunk {
     #[inline(always)]
     /// - converts a `Vec<u8>` into an `OwnedDataChunk`
     /// - performs hash validation
-    pub fn deserialize_from(data: Vec<u8>) -> Result<Self, PsDataChunkError> {
+    pub fn deserialize_from(data: Vec<u8>) -> Result<Self> {
         let (data, hash) = deserializer::deserialize_vec_to_parts(data)?;
 
         Ok(Self {
@@ -96,7 +96,7 @@ impl OwnedDataChunk {
 
     #[inline(always)]
     /// Copies `data` into a new `Vec<u8>` and deserializes it into an `OwnedDataChunk`.
-    pub fn deserialize(data: &[u8]) -> Result<Self, PsDataChunkError> {
+    pub fn deserialize(data: &[u8]) -> Result<Self> {
         Self::deserialize_from(data.to_vec())
     }
 
@@ -104,11 +104,7 @@ impl OwnedDataChunk {
     /// Decrypts into an `OwnedDataChunk` with the given `key`
     /// - performs hash validation
     /// - fails if `key` not correct
-    pub fn decrypt_bytes(
-        encrypted: &[u8],
-        key: &[u8],
-        compressor: &Compressor,
-    ) -> Result<Self, PsDataChunkError> {
+    pub fn decrypt_bytes(encrypted: &[u8], key: &[u8], compressor: &Compressor) -> Result<Self> {
         let decrypted = ps_cypher::decrypt(encrypted, key, compressor)?;
 
         Self::deserialize_from(decrypted)
@@ -118,16 +114,13 @@ impl OwnedDataChunk {
     /// Decrypts an `OwnedDataChunk` with the given `key`.
     /// - performs hash validation
     /// - fails if `key` not correct
-    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<Self, PsDataChunkError> {
+    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<Self> {
         Self::decrypt_bytes(&self.data, key, compressor)
     }
 
     #[inline(always)]
     /// Encrypts a serialized [DataChunk].
-    pub fn encrypt_bytes(
-        bytes: &[u8],
-        compressor: &Compressor,
-    ) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt_bytes(bytes: &[u8], compressor: &Compressor) -> Result<EncryptedDataChunk> {
         let encrypted = ps_cypher::encrypt(bytes, compressor)?;
 
         Ok(EncryptedDataChunk {
@@ -141,17 +134,14 @@ impl OwnedDataChunk {
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
-    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         Self::encrypt_bytes(&self.serialize(), compressor)
     }
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
     /// - optimized by using `self.data` as the serialization buffer
-    pub fn encrypt_mut(
-        &mut self,
-        compressor: &Compressor,
-    ) -> Result<EncryptedDataChunk, PsDataChunkError> {
+    pub fn encrypt_mut(&mut self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         let data_length = self.data.len();
 
         serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());

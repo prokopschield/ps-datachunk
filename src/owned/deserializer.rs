@@ -2,10 +2,10 @@ use ps_hash::Hash;
 
 use crate::{
     aligned::{offsets, rdown, HSIZE, SSIZE},
-    PsDataChunkError,
+    PsDataChunkError, Result,
 };
 
-pub fn deserialize_vec_to_parts(mut data: Vec<u8>) -> Result<(Vec<u8>, Hash), PsDataChunkError> {
+pub fn deserialize_vec_to_parts(mut data: Vec<u8>) -> Result<(Vec<u8>, Hash)> {
     if data.len() < HSIZE + SSIZE {
         return Err(PsDataChunkError::InvalidDataChunk);
     }
@@ -42,6 +42,6 @@ pub fn deserialize_vec_to_parts(mut data: Vec<u8>) -> Result<(Vec<u8>, Hash), Ps
     Ok((data, computed_hash))
 }
 
-pub fn deserialize_bytes_to_parts(data: &[u8]) -> Result<(Vec<u8>, Hash), PsDataChunkError> {
+pub fn deserialize_bytes_to_parts(data: &[u8]) -> Result<(Vec<u8>, Hash)> {
     deserialize_vec_to_parts(data.to_vec())
 }
