@@ -12,6 +12,7 @@ pub use encrypted::EncryptedDataChunk;
 pub use error::PsDataChunkError;
 pub use error::Result;
 pub use mbuf::MbufDataChunk;
+use owned::serializer::serialize_bytes_with_known_hash;
 pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
 pub use ps_hash::Hash;
@@ -28,7 +29,10 @@ pub trait DataChunkTrait {
     }
 
     fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        OwnedDataChunk::encrypt_serialized_bytes(self.data_ref(), compressor)
+        OwnedDataChunk::encrypt_serialized_bytes(
+            &serialize_bytes_with_known_hash(self.data_ref(), self.hash_ref()),
+            compressor,
+        )
     }
 
     fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<OwnedDataChunk> {
