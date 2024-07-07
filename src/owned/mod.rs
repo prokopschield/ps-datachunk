@@ -120,7 +120,10 @@ impl OwnedDataChunk {
 
     #[inline(always)]
     /// Encrypts a serialized [DataChunk].
-    pub fn encrypt_bytes(bytes: &[u8], compressor: &Compressor) -> Result<EncryptedDataChunk> {
+    pub fn encrypt_serialized_bytes(
+        bytes: &[u8],
+        compressor: &Compressor,
+    ) -> Result<EncryptedDataChunk> {
         let encrypted = ps_cypher::encrypt(bytes, compressor)?;
 
         Ok(EncryptedDataChunk {
@@ -135,7 +138,7 @@ impl OwnedDataChunk {
     #[inline(always)]
     /// Encrypts this [DataChunk].
     pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        Self::encrypt_bytes(&self.serialize(), compressor)
+        Self::encrypt_serialized_bytes(&self.serialize(), compressor)
     }
 
     #[inline(always)]
@@ -146,7 +149,7 @@ impl OwnedDataChunk {
 
         serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());
 
-        let encrypted = Self::encrypt_bytes(&self.data, compressor);
+        let encrypted = Self::encrypt_serialized_bytes(&self.data, compressor);
 
         self.data.truncate(data_length);
 

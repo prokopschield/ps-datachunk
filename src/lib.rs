@@ -28,7 +28,7 @@ pub trait DataChunkTrait {
     }
 
     fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        OwnedDataChunk::encrypt_bytes(self.data_ref(), compressor)
+        OwnedDataChunk::encrypt_serialized_bytes(self.data_ref(), compressor)
     }
 
     fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<OwnedDataChunk> {
@@ -202,11 +202,15 @@ impl<'lt> DataChunk<'lt> {
     /// Encrypts this [DataChunk].
     pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         match self {
-            DataChunk::Borrowed(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
-            DataChunk::Mbuf(_) => OwnedDataChunk::encrypt_bytes(&self.serialize(), compressor),
+            DataChunk::Borrowed(_) => {
+                OwnedDataChunk::encrypt_serialized_bytes(&self.serialize(), compressor)
+            }
+            DataChunk::Mbuf(_) => {
+                OwnedDataChunk::encrypt_serialized_bytes(&self.serialize(), compressor)
+            }
             DataChunk::Owned(owned) => owned.encrypt(compressor),
             DataChunk::Aligned(aligned) => {
-                OwnedDataChunk::encrypt_bytes(aligned.as_serialized_bytes(), compressor)
+                OwnedDataChunk::encrypt_serialized_bytes(aligned.as_serialized_bytes(), compressor)
             }
         }
     }
