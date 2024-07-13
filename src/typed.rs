@@ -1,3 +1,4 @@
+use crate::error::Result;
 use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::PsDataChunkError;
@@ -36,7 +37,7 @@ where
 {
     type Error = PsDataChunkError;
 
-    fn try_from(chunk: DataChunk<'lt>) -> Result<TypedDataChunk<'lt, T>, Self::Error> {
+    fn try_from(chunk: DataChunk<'lt>) -> Result<TypedDataChunk<'lt, T>> {
         match check_byte_layout::<T>(chunk.data_ref()) {
             true => Ok(unsafe { TypedDataChunk::from_chunk_unchecked(chunk) }),
             false => Err(PsDataChunkError::TypeError),
