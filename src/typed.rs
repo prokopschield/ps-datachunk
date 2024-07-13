@@ -1,4 +1,5 @@
 use crate::error::Result;
+use crate::AlignedDataChunk;
 use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::PsDataChunkError;
@@ -67,5 +68,38 @@ impl<'lt, T: Archive> DataChunkTrait for TypedDataChunk<'lt, T> {
 
     fn hash(&self) -> crate::HashCow {
         self.chunk.hash()
+    }
+}
+
+pub unsafe trait ToDataChunk<T: Archive> {
+    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>>;
+
+    fn to_datachunk(&self) -> Result<DataChunk> {
+        Ok(self.to_typed_datachunk()?.chunk)
+    }
+}
+
+unsafe impl<T> ToDataChunk<T> for T
+where
+    T: rkyv::Archive,
+    T::Archived: for<'a> rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'a>>,
+    T::Archived: rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<64>>,
+    T: rkyv::Serialize<
+        rkyv::ser::serializers::CompositeSerializer<
+            rkyv::ser::serializers::AlignedSerializer<rkyv::AlignedVec>,
+            rkyv::ser::serializers::FallbackScratch<
+                rkyv::ser::serializers::HeapScratch<64>,
+                rkyv::ser::serializers::AllocScratch,
+            >,
+            rkyv::ser::serializers::SharedSerializeMap,
+        >,
+    >,
+{
+    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>> {
+        let aligned = AlignedDataChunk::try_from::<64, T>(self)?;
+        let chunk = DataChunk::Aligned(aligned);
+        let typed = unsafe { TypedDataChunk::from_chunk_unchecked(chunk) };
+
+        Ok(typed)
     }
 }
