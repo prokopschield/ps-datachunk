@@ -71,15 +71,21 @@ impl<'lt, T: Archive> DataChunkTrait for TypedDataChunk<'lt, T> {
     }
 }
 
-pub unsafe trait ToDataChunk<T: Archive> {
-    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>>;
+pub trait ToDataChunk {
+    fn to_datachunk(&self) -> Result<DataChunk>;
+}
 
+impl<T: Archive + ToTypedDataChunk<T>> ToDataChunk for T {
     fn to_datachunk(&self) -> Result<DataChunk> {
         Ok(self.to_typed_datachunk()?.chunk)
     }
 }
 
-unsafe impl<T> ToDataChunk<T> for T
+pub unsafe trait ToTypedDataChunk<T: Archive> {
+    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>>;
+}
+
+unsafe impl<T> ToTypedDataChunk<T> for T
 where
     T: rkyv::Archive,
     T::Archived: for<'a> rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'a>>,
