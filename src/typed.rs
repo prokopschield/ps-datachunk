@@ -1,4 +1,5 @@
 use crate::DataChunk;
+use crate::DataChunkTrait;
 use crate::PsDataChunkError;
 use rkyv::validation::validators::DefaultValidator;
 use rkyv::Archive;
@@ -51,5 +52,19 @@ where
 
     fn deref(&self) -> &Self::Target {
         unsafe { rkyv::archived_root::<T>(self.chunk.data_ref()) }
+    }
+}
+
+impl<'lt, T: Archive> DataChunkTrait for TypedDataChunk<'lt, T> {
+    fn data_ref(&self) -> &[u8] {
+        self.chunk.data_ref()
+    }
+
+    fn hash_ref(&self) -> &[u8] {
+        self.chunk.hash_ref()
+    }
+
+    fn hash(&self) -> crate::HashCow {
+        self.chunk.hash()
     }
 }
