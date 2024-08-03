@@ -4,6 +4,7 @@ pub mod encrypted;
 pub mod error;
 pub mod mbuf;
 pub mod owned;
+pub mod shared;
 pub mod typed;
 pub use aligned::AlignedDataChunk;
 pub use borrowed::BorrowedDataChunk;
