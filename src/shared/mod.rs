@@ -1,3 +1,4 @@
+use crate::DataChunk;
 use crate::DataChunkTrait;
 use ps_hash::Hash;
 use std::sync::Arc;
@@ -32,5 +33,41 @@ impl DataChunkTrait for SharedDataChunk {
 
     fn to_owned(&self) -> crate::OwnedDataChunk {
         crate::OwnedDataChunk::from_data_ref_and_hash(self.data_ref(), self.hash())
+    }
+}
+
+impl SharedDataChunk {
+    pub fn from_data_and_hash(data: Arc<[u8]>, hash: Arc<Hash>) -> Self {
+        Self { data, hash }
+    }
+
+    pub fn from_data(data: Arc<[u8]>) -> Self {
+        let hash = Arc::from(ps_hash::hash(&data));
+
+        Self::from_data_and_hash(data, hash)
+    }
+}
+
+impl From<Arc<[u8]>> for SharedDataChunk {
+    fn from(data: Arc<[u8]>) -> Self {
+        Self::from_data(data)
+    }
+}
+
+impl From<&Arc<[u8]>> for SharedDataChunk {
+    fn from(data: &Arc<[u8]>) -> Self {
+        Self::from_data(data.clone())
+    }
+}
+
+impl<'lt> From<Arc<[u8]>> for DataChunk<'lt> {
+    fn from(data: Arc<[u8]>) -> Self {
+        DataChunk::Shared(data.into())
+    }
+}
+
+impl<'lt> From<&Arc<[u8]>> for DataChunk<'lt> {
+    fn from(data: &Arc<[u8]>) -> Self {
+        DataChunk::Shared(data.into())
     }
 }
