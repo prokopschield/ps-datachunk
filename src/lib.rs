@@ -18,6 +18,7 @@ pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
 pub use ps_hash::Hash;
 pub use ps_mbuf::Mbuf;
+use shared::SharedDataChunk;
 pub use typed::TypedDataChunk;
 
 /// represents any representation of a chunk of data
@@ -76,6 +77,7 @@ pub enum DataChunk<'lt> {
     Borrowed(BorrowedDataChunk<'lt>),
     Mbuf(MbufDataChunk<'lt>),
     Owned(OwnedDataChunk),
+    Shared(SharedDataChunk),
 }
 
 impl<'lt> DataChunkTrait for DataChunk<'lt> {
@@ -121,6 +123,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Aligned(aligned) => aligned.data_ref(),
             Self::Mbuf(mbuf) => mbuf.data_ref(),
             Self::Owned(owned) => owned.data_ref(),
+            Self::Shared(shared) => shared.data_ref(),
         }
     }
 
@@ -130,6 +133,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Borrowed(borrowed) => borrowed.hash_ref(),
             Self::Mbuf(mbuf) => mbuf.hash_ref(),
             Self::Owned(owned) => owned.hash_ref(),
+            Self::Shared(shared) => shared.hash_ref(),
         }
     }
 
@@ -139,6 +143,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Borrowed(borrowed) => borrowed.hash(),
             Self::Mbuf(mbuf) => mbuf.hash(),
             Self::Owned(owned) => owned.hash().into(),
+            Self::Shared(shared) => shared.hash().into(),
         }
     }
 
@@ -154,6 +159,7 @@ impl<'lt> DataChunk<'lt> {
             DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf.data_ref()),
             DataChunk::Owned(chunk) => chunk,
             DataChunk::Aligned(aligned) => (&aligned).into(),
+            DataChunk::Shared(shared) => shared.to_owned(),
         }
     }
 
@@ -165,6 +171,7 @@ impl<'lt> DataChunk<'lt> {
             DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf.data_ref()),
             DataChunk::Owned(chunk) => chunk.clone(),
             DataChunk::Aligned(aligned) => aligned.into(),
+            DataChunk::Shared(shared) => shared.to_owned(),
         }
     }
 
@@ -177,6 +184,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Mbuf(_) => self.to_owned().serialize_into(),
             Self::Owned(chunk) => chunk.serialize_into(),
             Self::Aligned(aligned) => aligned.serialize_into().to_vec(),
+            Self::Shared(shared) => shared.to_owned().serialize_into(),
         }
     }
 
@@ -198,6 +206,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Aligned(aligned) => {
                 OwnedDataChunk::decrypt_bytes(aligned.data_ref(), key, compressor)
             }
+            Self::Shared(shared) => shared.decrypt(key, compressor),
         }?;
 
         Ok(owned)
@@ -217,6 +226,7 @@ impl<'lt> DataChunk<'lt> {
             DataChunk::Aligned(aligned) => {
                 OwnedDataChunk::encrypt_serialized_bytes(aligned.as_serialized_bytes(), compressor)
             }
+            DataChunk::Shared(shared) => shared.encrypt(compressor),
         }
     }
 
@@ -228,6 +238,7 @@ impl<'lt> DataChunk<'lt> {
             DataChunk::Mbuf(_) => self.encrypt(compressor),
             DataChunk::Owned(chunk) => chunk.encrypt_mut(compressor),
             DataChunk::Aligned(_) => self.encrypt(compressor),
+            DataChunk::Shared(shared) => shared.encrypt(compressor),
         }
     }
 

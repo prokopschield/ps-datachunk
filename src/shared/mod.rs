@@ -29,4 +29,8 @@ impl DataChunkTrait for SharedDataChunk {
     fn hash(&self) -> crate::HashCow {
         crate::HashCow::from_arc(self.hash.clone())
     }
+
+    fn to_owned(&self) -> crate::OwnedDataChunk {
+        crate::OwnedDataChunk::from_data_ref_and_hash(self.data_ref(), self.hash())
+    }
 }

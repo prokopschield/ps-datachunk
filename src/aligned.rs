@@ -161,6 +161,7 @@ impl<'lt> From<&DataChunk<'lt>> for AlignedDataChunk {
             }
             DataChunk::Owned(owned) => owned.into(),
             DataChunk::Aligned(aligned) => aligned.clone(),
+            DataChunk::Shared(shared) => shared.align(),
         }
     }
 }
@@ -248,6 +249,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Borrowed(borrowed) => AlignedDataChunk::try_bytes_as::<T>(borrowed.data_ref()),
             Self::Mbuf(mbuf) => AlignedDataChunk::try_bytes_as::<T>(mbuf.data_ref()),
             Self::Owned(owned) => AlignedDataChunk::try_bytes_as::<T>(owned.data_ref()),
+            Self::Shared(shared) => AlignedDataChunk::try_bytes_as::<T>(shared.data_ref()),
         }
     }
 
