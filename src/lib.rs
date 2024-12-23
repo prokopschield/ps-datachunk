@@ -18,7 +18,7 @@ pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
 pub use ps_hash::Hash;
 pub use ps_mbuf::Mbuf;
-use shared::SharedDataChunk;
+pub use shared::SharedDataChunk;
 pub use typed::TypedDataChunk;
 
 /// represents any representation of a chunk of data
