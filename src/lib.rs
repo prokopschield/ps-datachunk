@@ -20,6 +20,7 @@ pub use owned::OwnedDataChunk;
 pub use ps_cypher::Compressor;
 pub use ps_hash::Hash;
 pub use ps_mbuf::Mbuf;
+pub use serialized::SerializedDataChunk;
 pub use shared::SharedDataChunk;
 pub use typed::TypedDataChunk;
 
@@ -63,6 +64,10 @@ pub trait DataChunkTrait {
         data_vec.extend_from_slice(data_ref);
 
         OwnedDataChunk::from_parts(data_vec, self.hash().into())
+    }
+
+    fn serialize(&self) -> SerializedDataChunk {
+        SerializedDataChunk::from_parts(self.data_ref(), self.hash_ref())
     }
 
     fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>>
