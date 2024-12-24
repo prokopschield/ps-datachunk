@@ -10,6 +10,7 @@ use crate::{
     DataChunkTrait,
 };
 
+#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
     buffer: Buffer,
 }
