@@ -4,6 +4,7 @@ use ps_hash::Hash;
 use crate::{
     utils::{
         constants::{HASH_ALIGNMENT, HASH_SIZE, SIZE_ALIGNMENT, SIZE_SIZE},
+        offsets::offsets,
         rounding::round_down,
     },
     DataChunkTrait,
@@ -55,6 +56,27 @@ impl SerializedDataChunk {
 
     pub fn is_empty(&self) -> bool {
         self.buffer.len() <= (HASH_SIZE + SIZE_SIZE)
+    }
+
+    pub fn from_parts<D, H>(data: D, hash: H) -> SerializedDataChunk
+    where
+        D: AsRef<[u8]>,
+        H: AsRef<[u8]>,
+    {
+        let data = data.as_ref();
+        let hash = hash.as_ref();
+        let length = data.len();
+        let length_bytes = length.to_le_bytes();
+
+        let (hash_offset, size_offset, buffer_length) = offsets(length);
+
+        let mut buffer = Buffer::alloc(buffer_length);
+
+        buffer[0..length].copy_from_slice(data);
+        buffer[hash_offset..hash_offset + hash.len()].copy_from_slice(hash);
+        buffer[size_offset..size_offset + length_bytes.len()].copy_from_slice(&length_bytes);
+
+        SerializedDataChunk { buffer }
     }
 }
 
