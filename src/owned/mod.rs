@@ -107,7 +107,8 @@ impl OwnedDataChunk {
     pub fn decrypt_bytes(encrypted: &[u8], key: &[u8], compressor: &Compressor) -> Result<Self> {
         let decrypted = ps_cypher::decrypt(encrypted, key, compressor)?;
 
-        Self::deserialize_from(decrypted)
+        // TODO remove
+        Self::deserialize_from(decrypted.to_vec())
     }
 
     #[inline(always)]
