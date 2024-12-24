@@ -1,16 +1,20 @@
 use ps_hash::Hash;
 
 use crate::{
-    aligned::{offsets, rdown, HSIZE, SSIZE},
+    utils::{
+        constants::{HASH_SIZE, SIZE_SIZE},
+        offsets::offsets,
+        rounding::round_down,
+    },
     PsDataChunkError, Result,
 };
 
 pub fn deserialize_vec_to_parts(mut data: Vec<u8>) -> Result<(Vec<u8>, Hash)> {
-    if data.len() < HSIZE + SSIZE {
+    if data.len() < HASH_SIZE + SIZE_SIZE {
         return Err(PsDataChunkError::InvalidDataChunk);
     }
 
-    let data_size_offset = rdown(data.len() - 1, 3);
+    let data_size_offset = round_down(data.len() - 1, 3);
 
     if data_size_offset + std::mem::size_of::<usize>() < data.len() {
         return Err(PsDataChunkError::InvalidDataChunk);
@@ -24,7 +28,7 @@ pub fn deserialize_vec_to_parts(mut data: Vec<u8>) -> Result<(Vec<u8>, Hash)> {
         )
     })?);
 
-    let (hash_offset, check_length_offset, _) = offsets(data_size, HSIZE);
+    let (hash_offset, check_length_offset, _) = offsets(data_size);
 
     if check_length_offset != data_size_offset {
         return Err(PsDataChunkError::InvalidDataChunk);

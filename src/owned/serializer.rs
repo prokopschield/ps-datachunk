@@ -1,4 +1,4 @@
-use crate::aligned::offsets;
+use crate::utils::offsets::offsets;
 
 #[inline(always)]
 pub fn serialize_vec_with_parameters(
@@ -17,7 +17,7 @@ pub fn serialize_vec_with_parameters(
 #[inline(always)]
 pub fn serialize_vec_with_known_hash(data: &mut Vec<u8>, hash: &[u8]) -> () {
     let data_length = data.len();
-    let (hash_offset, size_offset, _) = offsets(data_length, hash.len());
+    let (hash_offset, size_offset, _) = offsets(data_length);
 
     serialize_vec_with_parameters(data, hash, data_length, hash_offset, size_offset)
 }
@@ -30,7 +30,7 @@ pub fn serialize_vec(data: &mut Vec<u8>) -> () {
 #[inline]
 pub fn serialize_bytes_with_known_hash(data: &[u8], hash: &[u8]) -> Vec<u8> {
     let data_length = data.len();
-    let (hash_offset, size_offset, size) = offsets(data_length, hash.len());
+    let (hash_offset, size_offset, size) = offsets(data_length);
     let mut serialized = Vec::with_capacity(size);
 
     serialized.extend_from_slice(data);

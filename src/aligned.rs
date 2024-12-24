@@ -2,32 +2,15 @@ use crate::*;
 use ps_hash::Hash;
 use rkyv::AlignedVec;
 use std::borrow::Cow;
+use utils::{
+    constants::{HASH_SIZE, SIZE_SIZE},
+    offsets::offsets,
+    rounding::round_down,
+};
 
 #[derive(rkyv::Archive, rkyv::Serialize, Debug, Clone)]
 pub struct AlignedDataChunk {
     inner: AlignedVec,
-}
-
-pub const fn rup(size: usize, n: usize) -> usize {
-    match size {
-        0 => 0,
-        size => (((size - 1) >> n) + 1) << n,
-    }
-}
-
-pub const fn rdown(size: usize, n: usize) -> usize {
-    (size >> n) << n
-}
-
-pub const HSIZE: usize = rup(std::mem::size_of::<Hash>(), 3);
-pub const SSIZE: usize = rup(std::mem::size_of::<usize>(), 3);
-
-pub const fn offsets(dsize: usize, hsize: usize) -> (usize, usize, usize) {
-    let hash_offset = rup(dsize, 4);
-    let size_offset = rup(hash_offset + hsize, 3);
-    let size = rup(size_offset + SSIZE, 4);
-
-    (hash_offset, size_offset, size)
 }
 
 impl AlignedDataChunk {
@@ -47,7 +30,7 @@ impl AlignedDataChunk {
     }
 
     pub fn new_with_hash(chunk_data: &[u8], hash: &[u8]) -> Self {
-        let (hash_offset, size_offset, size) = offsets(chunk_data.len(), hash.len());
+        let (hash_offset, size_offset, size) = offsets(chunk_data.len());
 
         let mut data = AlignedVec::with_capacity(size);
 
@@ -57,7 +40,7 @@ impl AlignedDataChunk {
     }
 
     pub fn new_from_data_vec(data: AlignedVec) -> Self {
-        let (hash_offset, size_offset, _) = offsets(data.len(), HSIZE);
+        let (hash_offset, size_offset, _) = offsets(data.len());
         let hash = ps_hash::hash(data.as_slice());
         let data_length = data.len();
 
@@ -69,7 +52,7 @@ impl AlignedDataChunk {
     }
 
     pub fn len(&self) -> usize {
-        let begin = rdown(self.inner.len() - 1, 3);
+        let begin = round_down(self.inner.len() - 1, 3);
         let end = begin + std::mem::size_of::<usize>();
         let range = begin..end;
 
@@ -81,7 +64,7 @@ impl AlignedDataChunk {
     }
 
     pub fn hash_ref(&self) -> &[u8] {
-        let begin = rdown(self.inner.len() - HSIZE, 4);
+        let begin = round_down(self.inner.len() - HASH_SIZE, 4);
         let end = begin + std::mem::size_of::<Hash>();
         let range = begin..end;
 
@@ -120,7 +103,7 @@ impl AlignedDataChunk {
     }
 
     pub fn deserialize(bytes: &[u8]) -> Result<Self> {
-        if bytes.len() < HSIZE + SSIZE {
+        if bytes.len() < HASH_SIZE + SIZE_SIZE {
             return Err(PsDataChunkError::InvalidDataChunk);
         }
 
@@ -273,7 +256,7 @@ mod tests {
 
             assert_eq!(chunk.inner.len() % 16, 0);
 
-            let (hash_offset, size_offset, size) = offsets(i, HSIZE);
+            let (hash_offset, size_offset, size) = offsets(i);
 
             assert_eq!(hash_offset % 16, 0);
             assert_eq!(size_offset % 8, 0);

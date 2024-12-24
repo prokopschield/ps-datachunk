@@ -6,6 +6,7 @@ pub mod mbuf;
 pub mod owned;
 pub mod shared;
 pub mod typed;
+pub mod utils;
 pub use aligned::AlignedDataChunk;
 pub use borrowed::BorrowedDataChunk;
 pub use borrowed::HashCow;
@@ -55,7 +56,7 @@ pub trait DataChunkTrait {
 
     fn to_owned(&self) -> OwnedDataChunk {
         let data_ref = self.data_ref();
-        let reserved_size = aligned::rup(data_ref.len(), 6) + aligned::rup(aligned::HSIZE, 6);
+        let reserved_size = utils::offsets::offsets(data_ref.len()).2;
         let mut data_vec = Vec::with_capacity(reserved_size);
 
         data_vec.extend_from_slice(data_ref);

@@ -1,8 +1,7 @@
 pub mod deserializer;
 pub mod serializer;
 
-use crate::aligned::rup;
-use crate::aligned::HSIZE;
+use crate::utils::offsets::offsets;
 use crate::Compressor;
 use crate::DataChunk;
 use crate::DataChunkTrait;
@@ -49,7 +48,7 @@ impl OwnedDataChunk {
 
     /// creates an `OwnedDataChunk` with given `data` and `hash`
     pub fn from_data_ref_and_hash(data: &[u8], hash: Arc<Hash>) -> Self {
-        let reserved_size = rup(data.len(), 6) + rup(HSIZE, 6);
+        let reserved_size = offsets(data.len()).2;
         let mut data_vec = Vec::with_capacity(reserved_size);
 
         data_vec.extend_from_slice(data);
