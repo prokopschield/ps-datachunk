@@ -1,5 +1,5 @@
 use ps_buffer::Buffer;
-use ps_hash::Hash;
+use ps_hash::{hash, Hash};
 
 use crate::{
     utils::{
@@ -77,6 +77,10 @@ impl SerializedDataChunk {
         buffer[size_offset..size_offset + length_bytes.len()].copy_from_slice(&length_bytes);
 
         SerializedDataChunk { buffer }
+    }
+
+    pub fn from_data(data: &[u8]) -> SerializedDataChunk {
+        Self::from_parts(data, &hash(data))
     }
 }
 
