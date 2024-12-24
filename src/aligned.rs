@@ -3,7 +3,7 @@ use ps_hash::Hash;
 use rkyv::AlignedVec;
 use std::borrow::Cow;
 use utils::{
-    constants::{HASH_SIZE, SIZE_SIZE},
+    constants::{HASH_ALIGNMENT, HASH_SIZE, SIZE_ALIGNMENT, SIZE_SIZE},
     offsets::offsets,
     rounding::round_down,
 };
@@ -52,7 +52,7 @@ impl AlignedDataChunk {
     }
 
     pub fn len(&self) -> usize {
-        let begin = round_down(self.inner.len() - 1, 3);
+        let begin = round_down(self.inner.len() - 1, SIZE_ALIGNMENT);
         let end = begin + std::mem::size_of::<usize>();
         let range = begin..end;
 
@@ -64,7 +64,7 @@ impl AlignedDataChunk {
     }
 
     pub fn hash_ref(&self) -> &[u8] {
-        let begin = round_down(self.inner.len() - HASH_SIZE, 4);
+        let begin = round_down(self.inner.len() - HASH_SIZE, HASH_ALIGNMENT);
         let end = begin + std::mem::size_of::<Hash>();
         let range = begin..end;
 
