@@ -4,6 +4,7 @@ pub mod encrypted;
 pub mod error;
 pub mod mbuf;
 pub mod owned;
+pub mod serialized;
 pub mod shared;
 pub mod typed;
 pub mod utils;
