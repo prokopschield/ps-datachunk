@@ -1,9 +1,12 @@
 use ps_buffer::Buffer;
 use ps_hash::Hash;
 
-use crate::utils::{
-    constants::{HASH_ALIGNMENT, HASH_SIZE, SIZE_ALIGNMENT, SIZE_SIZE},
-    rounding::round_down,
+use crate::{
+    utils::{
+        constants::{HASH_ALIGNMENT, HASH_SIZE, SIZE_ALIGNMENT, SIZE_SIZE},
+        rounding::round_down,
+    },
+    DataChunkTrait,
 };
 
 pub struct SerializedDataChunk {
@@ -52,5 +55,15 @@ impl SerializedDataChunk {
 
     pub fn is_empty(&self) -> bool {
         self.buffer.len() <= (HASH_SIZE + SIZE_SIZE)
+    }
+}
+
+impl DataChunkTrait for SerializedDataChunk {
+    fn data_ref(&self) -> &[u8] {
+        self.data_ref()
+    }
+
+    fn hash_ref(&self) -> &[u8] {
+        self.hash_ref()
     }
 }
