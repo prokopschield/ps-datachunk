@@ -1,7 +1,7 @@
 use crate::*;
 use ps_hash::Hash;
 use rkyv::AlignedVec;
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 use utils::{
     constants::{HASH_ALIGNMENT, HASH_SIZE, SIZE_ALIGNMENT, SIZE_SIZE},
     offsets::offsets,
@@ -207,7 +207,7 @@ impl DataChunkTrait for AlignedDataChunk {
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
     }
-    fn hash(&self) -> HashCow {
+    fn hash(&self) -> Arc<Hash> {
         self.hash().into()
     }
 }

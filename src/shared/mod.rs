@@ -27,8 +27,8 @@ impl DataChunkTrait for SharedDataChunk {
         self.hash.as_bytes()
     }
 
-    fn hash(&self) -> crate::HashCow {
-        crate::HashCow::from_arc(self.hash.clone())
+    fn hash(&self) -> Arc<Hash> {
+        self.hash.clone()
     }
 
     fn to_owned(&self) -> crate::OwnedDataChunk {

@@ -6,7 +6,6 @@ use crate::Compressor;
 use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
-use crate::HashCow;
 use crate::Result;
 use ps_hash::Hash;
 use std::sync::Arc;
@@ -157,8 +156,8 @@ impl DataChunkTrait for OwnedDataChunk {
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
     }
-    fn hash(&self) -> HashCow {
-        HashCow::from_arc(self.hash())
+    fn hash(&self) -> Arc<Hash> {
+        self.hash()
     }
 }
 

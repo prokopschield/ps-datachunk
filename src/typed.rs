@@ -3,11 +3,13 @@ use crate::AlignedDataChunk;
 use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::PsDataChunkError;
+use ps_hash::Hash;
 use rkyv::validation::validators::DefaultValidator;
 use rkyv::Archive;
 use rkyv::CheckBytes;
 use std::marker::PhantomData;
 use std::ops::Deref;
+use std::sync::Arc;
 
 pub struct TypedDataChunk<'lt, T: rkyv::Archive> {
     chunk: DataChunk<'lt>,
@@ -66,7 +68,7 @@ impl<'lt, T: Archive> DataChunkTrait for TypedDataChunk<'lt, T> {
         self.chunk.hash_ref()
     }
 
-    fn hash(&self) -> crate::HashCow {
+    fn hash(&self) -> Arc<Hash> {
         self.chunk.hash()
     }
 }

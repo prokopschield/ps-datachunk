@@ -1,6 +1,9 @@
-use crate::{DataChunkTrait, HashCow};
+use std::sync::Arc;
+
 use ps_hash::Hash;
 use ps_mbuf::Mbuf;
+
+use crate::DataChunkTrait;
 
 #[derive(Clone, Copy)]
 pub struct MbufDataChunk<'lt> {
@@ -22,7 +25,7 @@ impl<'lt> DataChunkTrait for MbufDataChunk<'lt> {
         self.inner.get_metadata().as_bytes()
     }
 
-    fn hash(&self) -> HashCow<'lt> {
-        HashCow::Borrowed(self.inner.get_metadata())
+    fn hash(&self) -> Arc<Hash> {
+        Arc::from(*self.inner.get_metadata())
     }
 }

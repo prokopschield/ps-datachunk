@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::DataChunkTrait;
 use crate::OwnedDataChunk;
 use crate::Result;
@@ -26,8 +28,8 @@ impl DataChunkTrait for EncryptedDataChunk {
     fn hash_ref(&self) -> &[u8] {
         self.chunk.hash_ref()
     }
-    fn hash(&self) -> crate::HashCow {
-        self.chunk.hash().into()
+    fn hash(&self) -> Arc<Hash> {
+        self.chunk.hash()
     }
 }
 

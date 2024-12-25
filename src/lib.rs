@@ -10,7 +10,6 @@ pub mod typed;
 pub mod utils;
 pub use aligned::AlignedDataChunk;
 pub use borrowed::BorrowedDataChunk;
-pub use borrowed::HashCow;
 pub use encrypted::EncryptedDataChunk;
 pub use error::PsDataChunkError;
 pub use error::Result;
@@ -23,12 +22,14 @@ pub use serialized::SerializedDataChunk;
 pub use shared::SharedDataChunk;
 pub use typed::TypedDataChunk;
 
+use std::sync::Arc;
+
 /// represents any representation of a chunk of data
 pub trait DataChunkTrait {
     fn data_ref(&self) -> &[u8];
     fn hash_ref(&self) -> &[u8];
 
-    fn hash(&self) -> HashCow {
+    fn hash(&self) -> Arc<Hash> {
         ps_hash::hash(self.data_ref()).into()
     }
 
@@ -90,7 +91,7 @@ impl<'lt> DataChunkTrait for DataChunk<'lt> {
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
     }
-    fn hash(&self) -> HashCow {
+    fn hash(&self) -> Arc<Hash> {
         self.hash()
     }
 }
@@ -140,7 +141,7 @@ impl<'lt> DataChunk<'lt> {
         }
     }
 
-    pub fn hash(&self) -> HashCow {
+    pub fn hash(&self) -> Arc<Hash> {
         match self {
             Self::Aligned(aligned) => aligned.hash().into(),
             Self::Borrowed(borrowed) => borrowed.hash(),

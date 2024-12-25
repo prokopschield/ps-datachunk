@@ -1,15 +1,17 @@
-pub mod hashcow;
+use std::sync::Arc;
+
+use ps_hash::Hash;
+
 use crate::DataChunkTrait;
-pub use hashcow::HashCow;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BorrowedDataChunk<'lt> {
     data: &'lt [u8],
-    hash: HashCow<'lt>,
+    hash: Arc<Hash>,
 }
 
 impl<'lt> BorrowedDataChunk<'lt> {
-    pub fn from_parts(data: &'lt [u8], hash: HashCow<'lt>) -> Self {
+    pub fn from_parts(data: &'lt [u8], hash: Arc<Hash>) -> Self {
         Self { data, hash }
     }
 
@@ -27,8 +29,8 @@ impl<'lt> DataChunkTrait for BorrowedDataChunk<'lt> {
     fn hash_ref(&self) -> &[u8] {
         self.hash.as_bytes()
     }
-    fn hash(&self) -> HashCow {
-        (&self.hash).clone()
+    fn hash(&self) -> Arc<Hash> {
+        self.hash.clone()
     }
 }
 
