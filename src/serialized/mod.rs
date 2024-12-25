@@ -84,6 +84,12 @@ impl SerializedDataChunk {
     pub fn from_data(data: &[u8]) -> SerializedDataChunk {
         Self::from_parts(data, &hash(data))
     }
+
+    /// Returns a reference to this SerializedDataChunk's serialized bytes
+    #[inline(always)]
+    pub fn serialized_bytes(&self) -> &[u8] {
+        &self.buffer
+    }
 }
 
 impl DataChunkTrait for SerializedDataChunk {
