@@ -45,10 +45,6 @@ pub trait DataChunkTrait {
         DataChunk::Borrowed(self.borrow())
     }
 
-    fn align(&self) -> AlignedDataChunk {
-        AlignedDataChunk::new_with_hash(self.data_ref(), self.hash_ref())
-    }
-
     fn borrow(&self) -> BorrowedDataChunk {
         BorrowedDataChunk::from_parts(self.data_ref(), self.hash())
     }
@@ -152,34 +148,6 @@ impl<'lt> DataChunk<'lt> {
     }
 
     #[inline(always)]
-    /// Unwraps this [DataChunk] into an `OwnedDataChunk`.
-    /// - `DataChunk::Borrowed()` allocates a new `OwnedDataChunk`, recalculates hash
-    /// - `DataChunk::Mbuf()` allocates a new `OwnedDataChunk`, recalculates hash
-    /// - `DataChunk::Aligned()` indirectly invokes the OwnedDataChunk deserializer
-    /// - `DataChunk::Owned()` is a no-op
-    pub fn into_owned(self) -> OwnedDataChunk {
-        match self {
-            DataChunk::Borrowed(borrowed) => OwnedDataChunk::from_data_ref(borrowed.data_ref()),
-            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf.data_ref()),
-            DataChunk::Owned(chunk) => chunk,
-            DataChunk::Aligned(aligned) => (&aligned).into(),
-            DataChunk::Shared(shared) => shared.to_owned(),
-        }
-    }
-
-    #[inline(always)]
-    /// Gets an owned copy of this [DataChunk].
-    pub fn to_owned(&self) -> OwnedDataChunk {
-        match self {
-            DataChunk::Borrowed(borrowed) => OwnedDataChunk::from_data_ref(borrowed.data_ref()),
-            DataChunk::Mbuf(mbuf) => OwnedDataChunk::from_data_ref(mbuf.data_ref()),
-            DataChunk::Owned(chunk) => chunk.clone(),
-            DataChunk::Aligned(aligned) => aligned.into(),
-            DataChunk::Shared(shared) => shared.to_owned(),
-        }
-    }
-
-    #[inline(always)]
     /// convert this [DataChunk] into a `Vec<u8>`
     /// - `DataChunk::Mbuf()` is copied via `.to_owned()`
     pub fn serialize_into(self) -> Vec<u8> {
@@ -187,7 +155,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Borrowed(_) => self.to_owned().serialize_into(),
             Self::Mbuf(_) => self.to_owned().serialize_into(),
             Self::Owned(chunk) => chunk.serialize_into(),
-            Self::Aligned(aligned) => aligned.serialize_into().to_vec(),
+            Self::Aligned(aligned) => DataChunkTrait::to_owned(&aligned).serialize_into(),
             Self::Shared(shared) => shared.to_owned().serialize_into(),
         }
     }
@@ -227,9 +195,10 @@ impl<'lt> DataChunk<'lt> {
                 OwnedDataChunk::encrypt_serialized_bytes(&self.serialize(), compressor)
             }
             DataChunk::Owned(owned) => owned.encrypt(compressor),
-            DataChunk::Aligned(aligned) => {
-                OwnedDataChunk::encrypt_serialized_bytes(aligned.as_serialized_bytes(), compressor)
-            }
+            DataChunk::Aligned(aligned) => OwnedDataChunk::encrypt_serialized_bytes(
+                aligned.serialize().serialized_bytes(),
+                compressor,
+            ),
             DataChunk::Shared(shared) => shared.encrypt(compressor),
         }
     }
@@ -253,7 +222,7 @@ impl<'lt> DataChunk<'lt> {
         if remainder == 0 {
             self
         } else {
-            AlignedDataChunk::from(self).into()
+            todo!() // DataChunk::Serialized(self.serialize())
         }
     }
 }
