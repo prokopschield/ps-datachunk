@@ -1,4 +1,5 @@
 use ps_buffer::Buffer;
+use ps_cypher::Compressor;
 use ps_hash::{hash, Hash};
 
 use crate::{
@@ -7,7 +8,7 @@ use crate::{
         offsets::offsets,
         rounding::round_down,
     },
-    DataChunkTrait,
+    DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, Result,
 };
 
 #[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -88,6 +89,10 @@ impl SerializedDataChunk {
 impl DataChunkTrait for SerializedDataChunk {
     fn data_ref(&self) -> &[u8] {
         self.data_ref()
+    }
+
+    fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
+        OwnedDataChunk::encrypt_serialized_bytes(&self.buffer, compressor)
     }
 
     fn hash_ref(&self) -> &[u8] {
