@@ -125,15 +125,7 @@ impl OwnedDataChunk {
         bytes: &[u8],
         compressor: &Compressor,
     ) -> Result<EncryptedDataChunk> {
-        let encrypted = ps_cypher::encrypt(bytes, compressor)?;
-
-        Ok(EncryptedDataChunk {
-            chunk: OwnedDataChunk {
-                data: encrypted.bytes,
-                hash: encrypted.hash.into(),
-            },
-            key: encrypted.key.into(),
-        })
+        Ok(ps_cypher::encrypt(bytes, compressor)?.into())
     }
 
     #[inline(always)]
