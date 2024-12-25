@@ -35,6 +35,7 @@ impl OwnedDataChunk {
     /// # Safety
     /// - `hash` must be the hash of `data`
     /// - use `from_data()` if you cannot ensure this
+    #[inline(always)]
     pub fn from_parts(data: Vec<u8>, hash: Arc<Hash>) -> Self {
         Self { data, hash }
     }

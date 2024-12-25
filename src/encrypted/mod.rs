@@ -2,6 +2,7 @@ use crate::DataChunkTrait;
 use crate::OwnedDataChunk;
 use crate::Result;
 use ps_cypher::Compressor;
+use ps_cypher::Encrypted;
 use ps_hash::Hash;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -27,5 +28,14 @@ impl DataChunkTrait for EncryptedDataChunk {
     }
     fn hash(&self) -> crate::HashCow {
         self.chunk.hash().into()
+    }
+}
+
+impl From<Encrypted> for EncryptedDataChunk {
+    fn from(value: Encrypted) -> Self {
+        Self {
+            chunk: OwnedDataChunk::from_parts(value.bytes, value.hash),
+            key: value.key,
+        }
     }
 }
