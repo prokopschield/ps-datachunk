@@ -2,7 +2,6 @@ use crate::*;
 use ps_hash::{hash, Hash};
 use rkyv::AlignedVec;
 use std::{ops::Deref, sync::Arc};
-use utils::{constants::SIZE_ALIGNMENT, rounding::round_down};
 
 #[derive(Debug, Clone)]
 pub struct AlignedDataChunk {
@@ -29,15 +28,7 @@ impl AlignedDataChunk {
     }
 
     pub fn len(&self) -> usize {
-        let begin = round_down(self.data.len() - 1, SIZE_ALIGNMENT);
-        let end = begin + std::mem::size_of::<usize>();
-        let range = begin..end;
-
-        if let Ok(bytes) = self.data[range].try_into() {
-            usize::from_le_bytes(bytes)
-        } else {
-            0
-        }
+        self.data.len()
     }
 }
 
