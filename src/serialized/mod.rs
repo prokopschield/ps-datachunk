@@ -90,6 +90,11 @@ impl SerializedDataChunk {
     pub fn serialized_bytes(&self) -> &[u8] {
         &self.buffer
     }
+
+    #[inline(always)]
+    pub unsafe fn from_serialized_buffer(buffer: Buffer) -> Self {
+        Self { buffer }
+    }
 }
 
 impl DataChunkTrait for SerializedDataChunk {

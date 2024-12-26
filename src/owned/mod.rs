@@ -100,25 +100,6 @@ impl OwnedDataChunk {
     }
 
     #[inline(always)]
-    /// Decrypts into an `OwnedDataChunk` with the given `key`
-    /// - performs hash validation
-    /// - fails if `key` not correct
-    pub fn decrypt_bytes(encrypted: &[u8], key: &[u8], compressor: &Compressor) -> Result<Self> {
-        let decrypted = ps_cypher::decrypt(encrypted, key, compressor)?;
-
-        // TODO remove
-        Self::deserialize_from(decrypted.to_vec())
-    }
-
-    #[inline(always)]
-    /// Decrypts an `OwnedDataChunk` with the given `key`.
-    /// - performs hash validation
-    /// - fails if `key` not correct
-    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<Self> {
-        Self::decrypt_bytes(&self.data, key, compressor)
-    }
-
-    #[inline(always)]
     /// Encrypts a serialized [DataChunk].
     pub fn encrypt_serialized_bytes(
         bytes: &[u8],

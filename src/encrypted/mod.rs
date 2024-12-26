@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
+use crate::utils;
 use crate::DataChunkTrait;
 use crate::OwnedDataChunk;
 use crate::Result;
+use crate::SerializedDataChunk;
 use ps_cypher::Compressor;
 use ps_cypher::Encrypted;
 use ps_hash::Hash;
@@ -16,8 +18,8 @@ pub struct EncryptedDataChunk {
 
 impl EncryptedDataChunk {
     /// Decrypts this `EncryptedDataChunk`.
-    pub fn decrypt(&self, compressor: &Compressor) -> Result<OwnedDataChunk> {
-        OwnedDataChunk::decrypt(&self.chunk, self.key.as_bytes(), compressor)
+    pub fn decrypt(&self, compressor: &Compressor) -> Result<SerializedDataChunk> {
+        utils::decrypt::decrypt(self.chunk.data_ref(), self.key.as_bytes(), compressor)
     }
 }
 

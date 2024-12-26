@@ -37,8 +37,8 @@ pub trait DataChunkTrait {
         self.serialize().encrypt(compressor)
     }
 
-    fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<OwnedDataChunk> {
-        OwnedDataChunk::decrypt_bytes(self.data_ref(), key, compressor)
+    fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<SerializedDataChunk> {
+        utils::decrypt::decrypt(self.data_ref(), key, compressor)
     }
 
     fn to_datachunk(&self) -> DataChunk {
@@ -168,20 +168,16 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Decrypts this [DataChunk] with a given key.
-    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<OwnedDataChunk> {
-        let owned = match self {
-            Self::Borrowed(borrowed) => {
-                OwnedDataChunk::decrypt_bytes(borrowed.data_ref(), key, compressor)
-            }
-            Self::Mbuf(mbuf) => OwnedDataChunk::decrypt_bytes(mbuf.data_ref(), key, compressor),
+    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<SerializedDataChunk> {
+        let decrypted = match self {
+            Self::Borrowed(borrowed) => borrowed.decrypt(key, compressor),
+            Self::Mbuf(mbuf) => mbuf.decrypt(key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
-            Self::Aligned(aligned) => {
-                OwnedDataChunk::decrypt_bytes(aligned.data_ref(), key, compressor)
-            }
+            Self::Aligned(aligned) => aligned.decrypt(key, compressor),
             Self::Shared(shared) => shared.decrypt(key, compressor),
         }?;
 
-        Ok(owned)
+        Ok(decrypted)
     }
 
     #[inline(always)]
