@@ -65,9 +65,13 @@ pub trait DataChunkTrait {
 
     fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>>
     where
-        T::Archived: for<'a> rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'a>>,
+        T::Archived:
+            for<'a> rkyv::bytecheck::CheckBytes<rkyv::api::high::HighValidator<'a, rancor::Error>>,
     {
-        self.to_datachunk().try_into()
+        match typed::check_byte_layout::<T>(self.data_ref()) {
+            true => Ok(unsafe { TypedDataChunk::from_chunk_unchecked(self.to_datachunk()) }),
+            false => Err(PsDataChunkError::TypeError),
+        }
     }
 }
 

@@ -1,7 +1,17 @@
+use std::ops::Deref;
+
+use ps_hash::hash;
+use rancor::{Error, Strategy};
+use rkyv::{
+    api::high::HighSerializer,
+    bytecheck::CheckBytes,
+    ser::allocator::ArenaHandle,
+    util::AlignedVec,
+    validation::{archive::ArchiveValidator, shared::SharedValidator, Validator},
+    Archive, Serialize,
+};
+
 use crate::*;
-use ps_hash::{hash, Hash};
-use rkyv::AlignedVec;
-use std::{ops::Deref, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub struct AlignedDataChunk {
@@ -47,13 +57,11 @@ impl Deref for AlignedDataChunk {
 }
 
 impl AlignedDataChunk {
-    pub fn try_from<
-        const S: usize,
-        T: rkyv::Archive + rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<S>>,
-    >(
-        value: &T,
-    ) -> Result<Self> {
-        let data = rkyv::to_bytes(value).map_err(|_| PsDataChunkError::SerializationError)?;
+    pub fn try_from<T: rkyv::Archive>(value: &T) -> Result<Self>
+    where
+        for<'a> T: Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
+    {
+        let data = rkyv::to_bytes::<Error>(value)?;
         let chunk = Self::from_data_vec(data);
 
         Ok(chunk)
@@ -61,10 +69,10 @@ impl AlignedDataChunk {
 
     pub fn try_bytes_as<'lt, T: rkyv::Archive>(data: &'lt [u8]) -> Result<&'lt T::Archived>
     where
-        <T as rkyv::Archive>::Archived:
-            rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
+        for<'a> <T as rkyv::Archive>::Archived:
+            CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
     {
-        let result = rkyv::check_archived_root::<T>(data);
+        let result = rkyv::access::<T::Archived, Error>(data);
         let value = result.map_err(|_| PsDataChunkError::TypeError)?;
 
         Ok(value)
@@ -72,8 +80,8 @@ impl AlignedDataChunk {
 
     pub fn try_as<'lt, T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
     where
-        <T as rkyv::Archive>::Archived:
-            rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
+        for<'a> <T as Archive>::Archived:
+            CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
     {
         Self::try_bytes_as::<T>(self.data_ref())
     }
@@ -92,19 +100,17 @@ impl DataChunkTrait for AlignedDataChunk {
 }
 
 impl<'lt> DataChunk<'lt> {
-    pub fn try_from<
-        const S: usize,
-        T: rkyv::Archive + rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<S>>,
-    >(
-        value: &T,
-    ) -> Result<Self> {
+    pub fn try_from<const S: usize, T: rkyv::Archive>(value: &T) -> Result<Self>
+    where
+        T: for<'a> Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
+    {
         Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
     }
 
     pub fn try_as<T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
     where
-        <T as rkyv::Archive>::Archived:
-            rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'lt>>,
+        for<'a> <T as Archive>::Archived:
+            CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
     {
         match self {
             Self::Aligned(aligned) => aligned.try_as::<T>(),
@@ -126,7 +132,7 @@ mod tests {
     fn test_chunk_length_divisibility_and_part_alignment() -> Result<()> {
         for i in 12..256 {
             let data = (vec![i as u8; i], ());
-            let chunk = AlignedDataChunk::try_from::<4, _>(&data)?;
+            let chunk = AlignedDataChunk::try_from::<_>(&data)?;
 
             assert_eq!(chunk.serialize().serialized_bytes().len() % 16, 0);
 

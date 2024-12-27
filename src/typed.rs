@@ -1,6 +1,13 @@
 use std::{marker::PhantomData, ops::Deref};
 
-use rkyv::{validation::validators::DefaultValidator, Archive, CheckBytes};
+use rancor::{Error, Strategy};
+use rkyv::{
+    api::high::HighValidator,
+    bytecheck::CheckBytes,
+    ser::{allocator::ArenaHandle, sharing::Share, Serializer},
+    util::AlignedVec,
+    Archive, Serialize,
+};
 
 use crate::*;
 
@@ -12,9 +19,9 @@ pub struct TypedDataChunk<'lt, T: rkyv::Archive> {
 pub fn check_byte_layout<'lt, T>(bytes: &[u8]) -> bool
 where
     T: Archive,
-    T::Archived: for<'a> CheckBytes<DefaultValidator<'a>>,
+    T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
 {
-    rkyv::check_archived_root::<T>(bytes).is_ok()
+    rkyv::access::<T::Archived, Error>(bytes).is_ok()
 }
 
 impl<'lt, T: Archive> TypedDataChunk<'lt, T> {
@@ -29,7 +36,7 @@ impl<'lt, T: Archive> TypedDataChunk<'lt, T> {
 impl<'lt, T> TryFrom<DataChunk<'lt>> for TypedDataChunk<'lt, T>
 where
     T: Archive,
-    T::Archived: for<'a> CheckBytes<DefaultValidator<'a>>,
+    T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
 {
     type Error = PsDataChunkError;
 
@@ -43,12 +50,12 @@ where
 
 impl<'lt, T: Archive> Deref for TypedDataChunk<'lt, T>
 where
-    <T as Archive>::Archived: CheckBytes<DefaultValidator<'lt>>,
+    <T as Archive>::Archived: CheckBytes<HighValidator<'lt, Error>>,
 {
     type Target = T::Archived;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { rkyv::archived_root::<T>(self.chunk.data_ref()) }
+        unsafe { rkyv::access_unchecked::<T::Archived>(self.chunk.data_ref()) }
     }
 }
 
@@ -83,21 +90,11 @@ pub unsafe trait ToTypedDataChunk<T: Archive> {
 unsafe impl<T> ToTypedDataChunk<T> for T
 where
     T: rkyv::Archive,
-    T::Archived: for<'a> rkyv::CheckBytes<rkyv::validation::validators::DefaultValidator<'a>>,
-    T::Archived: rkyv::Serialize<rkyv::ser::serializers::AllocSerializer<64>>,
-    T: rkyv::Serialize<
-        rkyv::ser::serializers::CompositeSerializer<
-            rkyv::ser::serializers::AlignedSerializer<rkyv::AlignedVec>,
-            rkyv::ser::serializers::FallbackScratch<
-                rkyv::ser::serializers::HeapScratch<64>,
-                rkyv::ser::serializers::AllocScratch,
-            >,
-            rkyv::ser::serializers::SharedSerializeMap,
-        >,
-    >,
+    T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
+    T: for<'a> Serialize<Strategy<Serializer<AlignedVec, ArenaHandle<'a>, Share>, Error>>,
 {
     fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>> {
-        let aligned = AlignedDataChunk::try_from::<64, T>(self)?;
+        let aligned = AlignedDataChunk::try_from::<T>(self)?;
         let chunk = DataChunk::Aligned(aligned);
         let typed = unsafe { TypedDataChunk::from_chunk_unchecked(chunk) };
 
