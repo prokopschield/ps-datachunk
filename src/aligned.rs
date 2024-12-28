@@ -112,13 +112,7 @@ impl<'lt> DataChunk<'lt> {
         for<'a> <T as Archive>::Archived:
             CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
     {
-        match self {
-            Self::Aligned(aligned) => aligned.try_as::<T>(),
-            Self::Borrowed(borrowed) => AlignedDataChunk::try_bytes_as::<T>(borrowed.data_ref()),
-            Self::Mbuf(mbuf) => AlignedDataChunk::try_bytes_as::<T>(mbuf.data_ref()),
-            Self::Owned(owned) => AlignedDataChunk::try_bytes_as::<T>(owned.data_ref()),
-            Self::Shared(shared) => AlignedDataChunk::try_bytes_as::<T>(shared.data_ref()),
-        }
+        AlignedDataChunk::try_bytes_as::<T>(self.data_ref())
     }
 }
 
