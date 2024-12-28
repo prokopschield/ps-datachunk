@@ -72,10 +72,7 @@ impl AlignedDataChunk {
         for<'a> <T as rkyv::Archive>::Archived:
             CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
     {
-        let result = rkyv::access::<T::Archived, Error>(data);
-        let value = result.map_err(|_| PsDataChunkError::TypeError)?;
-
-        Ok(value)
+        Ok(rkyv::access::<T::Archived, Error>(data)?)
     }
 
     pub fn try_as<'lt, T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
