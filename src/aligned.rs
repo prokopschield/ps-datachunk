@@ -100,7 +100,7 @@ impl DataChunkTrait for AlignedDataChunk {
 }
 
 impl<'lt> DataChunk<'lt> {
-    pub fn try_from<const S: usize, T: rkyv::Archive>(value: &T) -> Result<Self>
+    pub fn try_from<T: rkyv::Archive>(value: &T) -> Result<Self>
     where
         T: for<'a> Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
     {
