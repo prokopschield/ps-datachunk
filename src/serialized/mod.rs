@@ -8,7 +8,7 @@ use crate::{
         offsets::offsets,
         rounding::round_down,
     },
-    DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, Result,
+    DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
 };
 
 #[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -60,13 +60,11 @@ impl SerializedDataChunk {
         self.buffer.len() <= (HASH_SIZE + SIZE_SIZE)
     }
 
-    pub fn from_parts<D, H>(data: D, hash: H) -> SerializedDataChunk
+    pub fn from_parts<D>(data: D, hash: &Hash) -> SerializedDataChunk
     where
         D: AsRef<[u8]>,
-        H: AsRef<[u8]>,
     {
         let data = data.as_ref();
-        let hash = hash.as_ref();
         let length = data.len();
         let length_bytes = length.to_le_bytes();
 
@@ -75,10 +73,27 @@ impl SerializedDataChunk {
         let mut buffer = Buffer::alloc(buffer_length);
 
         buffer[0..length].copy_from_slice(data);
-        buffer[hash_offset..hash_offset + hash.len()].copy_from_slice(hash);
+        buffer[hash_offset..hash_offset + hash.len()].copy_from_slice(hash.as_bytes());
         buffer[size_offset..size_offset + length_bytes.len()].copy_from_slice(&length_bytes);
 
         SerializedDataChunk { buffer }
+    }
+
+    pub fn try_from_parts<D, H>(data: D, hash: H) -> Result<Self>
+    where
+        D: AsRef<[u8]>,
+        H: AsRef<[u8]>,
+    {
+        let data = data.as_ref();
+        let hash = hash.as_ref();
+
+        let computed_hash = ps_hash::hash(data);
+
+        if computed_hash.as_bytes() != hash {
+            return Err(PsDataChunkError::InvalidChecksum);
+        }
+
+        Ok(Self::from_parts(data, &computed_hash))
     }
 
     pub fn from_data(data: &[u8]) -> SerializedDataChunk {
