@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use ps_buffer::Buffer;
 use ps_cypher::Compressor;
-use ps_hash::{hash, Hash};
+use ps_hash::{hash, verify_hash_integrity, Hash};
 
 use crate::{
     utils::{
@@ -11,9 +13,10 @@ use crate::{
     DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
 };
 
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
     buffer: Buffer,
+    hash: Arc<Hash>,
 }
 
 impl SerializedDataChunk {
@@ -60,7 +63,14 @@ impl SerializedDataChunk {
         self.buffer.len() <= (HASH_SIZE + SIZE_SIZE)
     }
 
-    pub fn from_parts<D>(data: D, hash: &Hash) -> SerializedDataChunk
+    /// # Safety
+    ///
+    /// Called guarantees that `hash` is `hash(data)`
+    ///
+    /// This method does **NOT** verify `hash`!
+    ///
+    /// Call only if `hash` is surely known.
+    pub fn from_parts<D>(data: D, hash: Arc<Hash>) -> SerializedDataChunk
     where
         D: AsRef<[u8]>,
     {
@@ -76,9 +86,16 @@ impl SerializedDataChunk {
         buffer[hash_offset..hash_offset + hash.len()].copy_from_slice(hash.as_bytes());
         buffer[size_offset..size_offset + length_bytes.len()].copy_from_slice(&length_bytes);
 
-        SerializedDataChunk { buffer }
+        SerializedDataChunk { buffer, hash }
     }
 
+    /// # Safety
+    ///
+    /// Called guarantees that `hash` is `hash(data)`
+    ///
+    /// This method does **NOT** verify `hash`!
+    ///
+    /// This method only verifies the internal checksum of `hash`, and will return `Err(PsDataChunkError::InvalidChecksum)` if this is invalid.
     pub fn try_from_parts<D, H>(data: D, hash: H) -> Result<Self>
     where
         D: AsRef<[u8]>,
@@ -87,17 +104,23 @@ impl SerializedDataChunk {
         let data = data.as_ref();
         let hash = hash.as_ref();
 
-        let computed_hash = ps_hash::hash(data);
-
-        if computed_hash.as_bytes() != hash {
+        if !verify_hash_integrity(hash) {
             return Err(PsDataChunkError::InvalidChecksum);
         }
 
-        Ok(Self::from_parts(data, &computed_hash))
+        let hash = Hash::try_from(hash)?.into();
+
+        Ok(Self::from_parts(data, hash))
     }
 
-    pub fn from_data(data: &[u8]) -> SerializedDataChunk {
-        Self::from_parts(data, &hash(data))
+    /// Allocate a `SerializedDataChunk` containing `data`
+    pub fn from_data<D>(data: D) -> SerializedDataChunk
+    where
+        D: AsRef<[u8]>,
+    {
+        let data = data.as_ref();
+
+        Self::from_parts(data, hash(data).into())
     }
 
     /// Returns a reference to this SerializedDataChunk's serialized bytes
@@ -106,9 +129,39 @@ impl SerializedDataChunk {
         &self.buffer
     }
 
-    #[inline(always)]
-    pub unsafe fn from_serialized_buffer(buffer: Buffer) -> Self {
-        Self { buffer }
+    /// Constructs a `SerializedDataChunk` from a serialized buffer.
+    ///
+    /// `buffer` is validated to be interpretable as a `SerializedDataChunk`,
+    /// and its `hash` is recalculated and verified. However, other things,
+    /// such as padding and buffer length, are not validated.
+    pub fn from_serialized_buffer(buffer: Buffer) -> Result<Self> {
+        if buffer.len() < (HASH_SIZE + SIZE_SIZE) {
+            // the `buffer` must include, at least, a `hash` and a `length`.
+            return Err(PsDataChunkError::InvalidDataChunk)?;
+        }
+
+        let len_offset = round_down(buffer.len() - SIZE_SIZE, SIZE_ALIGNMENT);
+        let hash_offset = round_down(len_offset - HASH_SIZE, HASH_ALIGNMENT);
+
+        let length = usize::from_le_bytes(
+            (&buffer[len_offset..len_offset + std::mem::size_of::<usize>()]).try_into()?,
+        );
+
+        if length > hash_offset {
+            // `length` is obviously incorrect as `hash` would occupy the same bytes as `data`
+            return Err(PsDataChunkError::InvalidLength(length))?;
+        }
+
+        let data = &buffer[0..length];
+        let hash = ps_hash::hash(data).into();
+        let chunk = Self { buffer, hash };
+
+        if chunk.hash_ref() != chunk.hash.as_bytes() {
+            // ensures data integrity
+            return Err(PsDataChunkError::InvalidChecksum)?;
+        }
+
+        Ok(chunk)
     }
 }
 

@@ -60,7 +60,7 @@ pub trait DataChunkTrait {
     }
 
     fn serialize(&self) -> SerializedDataChunk {
-        SerializedDataChunk::from_parts(self.data_ref(), &self.hash())
+        SerializedDataChunk::from_parts(self.data_ref(), self.hash())
     }
 
     fn try_as<T: rkyv::Archive>(&self) -> Result<TypedDataChunk<T>>
