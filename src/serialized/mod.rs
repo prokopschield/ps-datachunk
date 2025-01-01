@@ -163,6 +163,18 @@ impl SerializedDataChunk {
 
         Ok(chunk)
     }
+
+    #[inline(always)]
+    /// extracts the serialized `Buffer` from this `SerializedDataChunk`
+    pub fn into_buffer(self) -> Buffer {
+        self.buffer
+    }
+
+    #[inline(always)]
+    /// extracts the serialized `Buffer` and `Hash` from this `SerializedDataChunk`
+    pub fn into_parts(self) -> (Buffer, Arc<Hash>) {
+        (self.buffer, self.hash)
+    }
 }
 
 impl DataChunkTrait for SerializedDataChunk {
