@@ -57,9 +57,9 @@ impl Deref for AlignedDataChunk {
 }
 
 impl AlignedDataChunk {
-    pub fn try_from<T: rkyv::Archive>(value: &T) -> Result<Self>
+    pub fn try_from<T>(value: &T) -> Result<Self>
     where
-        for<'a> T: Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
+        for<'a> T: Archive + Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
     {
         let data = rkyv::to_bytes::<Error>(value)?;
         let chunk = Self::from_data_vec(data);
@@ -97,9 +97,9 @@ impl DataChunkTrait for AlignedDataChunk {
 }
 
 impl<'lt> DataChunk<'lt> {
-    pub fn try_from<T: rkyv::Archive>(value: &T) -> Result<Self>
+    pub fn try_from<T>(value: &T) -> Result<Self>
     where
-        T: for<'a> Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
+        T: Archive + for<'a> Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
     {
         Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
     }
