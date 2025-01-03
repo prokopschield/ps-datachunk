@@ -119,7 +119,7 @@ impl<'lt> DataChunk<'lt> {
 
 #[cfg(test)]
 mod tests {
-    use utils::offsets::offsets;
+    use utils::offsets;
 
     use super::*;
 

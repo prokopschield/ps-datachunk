@@ -1,4 +1,4 @@
-use crate::utils::offsets::offsets;
+use crate::utils::offsets;
 
 #[inline(always)]
 pub fn serialize_vec_with_parameters(

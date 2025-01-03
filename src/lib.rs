@@ -39,7 +39,7 @@ pub trait DataChunkTrait {
     }
 
     fn decrypt(&self, key: &[u8]) -> Result<SerializedDataChunk> {
-        utils::decrypt::decrypt(self.data_ref(), key)
+        utils::decrypt(self.data_ref(), key)
     }
 
     fn to_datachunk(&self) -> DataChunk {
@@ -52,7 +52,7 @@ pub trait DataChunkTrait {
 
     fn to_owned(&self) -> OwnedDataChunk {
         let data_ref = self.data_ref();
-        let reserved_size = utils::offsets::offsets(data_ref.len()).2;
+        let reserved_size = utils::offsets(data_ref.len()).2;
         let mut data_vec = Vec::with_capacity(reserved_size);
 
         data_vec.extend_from_slice(data_ref);

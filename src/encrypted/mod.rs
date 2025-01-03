@@ -18,7 +18,7 @@ pub struct EncryptedDataChunk {
 impl EncryptedDataChunk {
     /// Decrypts this `EncryptedDataChunk`.
     pub fn decrypt(&self) -> Result<SerializedDataChunk> {
-        utils::decrypt::decrypt(self.chunk.data_ref(), self.key.as_bytes())
+        utils::decrypt(self.chunk.data_ref(), self.key.as_bytes())
     }
 }
 

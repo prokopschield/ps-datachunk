@@ -1,7 +1,7 @@
 pub mod deserializer;
 pub mod serializer;
 
-use crate::utils::offsets::offsets;
+use crate::utils::offsets;
 use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
