@@ -2,7 +2,6 @@ pub mod deserializer;
 pub mod serializer;
 
 use crate::utils::offsets::offsets;
-use crate::Compressor;
 use crate::DataChunk;
 use crate::DataChunkTrait;
 use crate::EncryptedDataChunk;
@@ -81,28 +80,25 @@ impl OwnedDataChunk {
 
     #[inline(always)]
     /// Encrypts a serialized [DataChunk].
-    pub fn encrypt_serialized_bytes(
-        bytes: &[u8],
-        compressor: &Compressor,
-    ) -> Result<EncryptedDataChunk> {
-        Ok(ps_cypher::encrypt(bytes, compressor)?.into())
+    pub fn encrypt_serialized_bytes(bytes: &[u8]) -> Result<EncryptedDataChunk> {
+        Ok(ps_cypher::encrypt(bytes)?.into())
     }
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
-    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        Self::encrypt_serialized_bytes(&self.serialize().into_buffer(), compressor)
+    pub fn encrypt(&self) -> Result<EncryptedDataChunk> {
+        Self::encrypt_serialized_bytes(&self.serialize().into_buffer())
     }
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
     /// - optimized by using `self.data` as the serialization buffer
-    pub fn encrypt_mut(&mut self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
+    pub fn encrypt_mut(&mut self) -> Result<EncryptedDataChunk> {
         let data_length = self.data.len();
 
         serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());
 
-        let encrypted = Self::encrypt_serialized_bytes(&self.data, compressor);
+        let encrypted = Self::encrypt_serialized_bytes(&self.data);
 
         self.data.truncate(data_length);
 

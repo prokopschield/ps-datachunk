@@ -13,7 +13,7 @@ opt-level = 3
 
 [dependencies]
 ps-buffer = "0.1.0-4"
-ps-cypher = "0.1.0-10"
+ps-cypher = "0.1.0-11"
 ps-hash = "0.1.0-10"
 ps-mbuf = "0.1.0-4"
 rancor = "0.1.0"

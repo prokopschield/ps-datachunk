@@ -1,7 +1,6 @@
 use std::{ops::Deref, sync::Arc};
 
 use ps_buffer::Buffer;
-use ps_cypher::Compressor;
 use ps_hash::{hash, verify_hash_integrity, Hash};
 
 use crate::{
@@ -182,8 +181,8 @@ impl DataChunkTrait for SerializedDataChunk {
         self.data_ref()
     }
 
-    fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        OwnedDataChunk::encrypt_serialized_bytes(&self.buffer, compressor)
+    fn encrypt(&self) -> Result<EncryptedDataChunk> {
+        OwnedDataChunk::encrypt_serialized_bytes(&self.buffer)
     }
 
     fn hash_ref(&self) -> &[u8] {

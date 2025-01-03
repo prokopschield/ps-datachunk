@@ -15,7 +15,6 @@ pub use error::PsDataChunkError;
 pub use error::Result;
 pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;
-pub use ps_cypher::Compressor;
 pub use ps_hash::Hash;
 pub use ps_mbuf::Mbuf;
 pub use serialized::SerializedDataChunk;
@@ -35,12 +34,12 @@ pub trait DataChunkTrait {
         ps_hash::hash(self.data_ref()).into()
     }
 
-    fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        self.serialize().encrypt(compressor)
+    fn encrypt(&self) -> Result<EncryptedDataChunk> {
+        self.serialize().encrypt()
     }
 
-    fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<SerializedDataChunk> {
-        utils::decrypt::decrypt(self.data_ref(), key, compressor)
+    fn decrypt(&self, key: &[u8]) -> Result<SerializedDataChunk> {
+        utils::decrypt::decrypt(self.data_ref(), key)
     }
 
     fn to_datachunk(&self) -> DataChunk {
@@ -159,14 +158,14 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Decrypts this [DataChunk] with a given key.
-    pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<SerializedDataChunk> {
+    pub fn decrypt(&self, key: &[u8]) -> Result<SerializedDataChunk> {
         let decrypted = match self {
-            Self::Borrowed(borrowed) => borrowed.decrypt(key, compressor),
-            Self::Mbuf(mbuf) => mbuf.decrypt(key, compressor),
-            Self::Owned(chunk) => chunk.decrypt(key, compressor),
-            Self::Aligned(aligned) => aligned.decrypt(key, compressor),
-            Self::Serialized(serialized) => serialized.decrypt(key, compressor),
-            Self::Shared(shared) => shared.decrypt(key, compressor),
+            Self::Borrowed(borrowed) => borrowed.decrypt(key),
+            Self::Mbuf(mbuf) => mbuf.decrypt(key),
+            Self::Owned(chunk) => chunk.decrypt(key),
+            Self::Aligned(aligned) => aligned.decrypt(key),
+            Self::Serialized(serialized) => serialized.decrypt(key),
+            Self::Shared(shared) => shared.decrypt(key),
         }?;
 
         Ok(decrypted)
@@ -174,25 +173,24 @@ impl<'lt> DataChunk<'lt> {
 
     #[inline(always)]
     /// Encrypts this [DataChunk].
-    pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
+    pub fn encrypt(&self) -> Result<EncryptedDataChunk> {
         match self {
-            DataChunk::Owned(owned) => owned.encrypt(compressor),
-            DataChunk::Aligned(aligned) => OwnedDataChunk::encrypt_serialized_bytes(
-                aligned.serialize().serialized_bytes(),
-                compressor,
-            ),
-            DataChunk::Serialized(serialized) => serialized.encrypt(compressor),
-            DataChunk::Shared(shared) => shared.encrypt(compressor),
-            _ => self.serialize().encrypt(compressor),
+            DataChunk::Owned(owned) => owned.encrypt(),
+            DataChunk::Aligned(aligned) => {
+                OwnedDataChunk::encrypt_serialized_bytes(aligned.serialize().serialized_bytes())
+            }
+            DataChunk::Serialized(serialized) => serialized.encrypt(),
+            DataChunk::Shared(shared) => shared.encrypt(),
+            _ => self.serialize().encrypt(),
         }
     }
 
     #[inline(always)]
     /// Encrypts this [DataChunk] using `self.data` if owned.
-    pub fn encrypt_mut(&mut self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
+    pub fn encrypt_mut(&mut self) -> Result<EncryptedDataChunk> {
         match self {
-            DataChunk::Owned(chunk) => chunk.encrypt_mut(compressor),
-            _ => self.encrypt(compressor),
+            DataChunk::Owned(chunk) => chunk.encrypt_mut(),
+            _ => self.encrypt(),
         }
     }
 
@@ -214,13 +212,12 @@ mod tests {
 
     #[test]
     fn test_encryption_decryption() -> Result<()> {
-        let compressor = Compressor::new();
         let original_data = "Neboť tak Bůh miluje svět, že dal [svého] jediného Syna, aby žádný, kdo v něho věří, nezahynul, ale měl život věčný. Vždyť Bůh neposlal [svého] Syna na svět, aby svět odsoudil, ale aby byl svět skrze něj zachráněn.".as_bytes().to_owned();
 
         let data_chunk = DataChunk::Owned(OwnedDataChunk::from_data_ref(&original_data));
 
-        let encrypted_chunk = data_chunk.encrypt(&compressor)?;
-        let decrypted_chunk = encrypted_chunk.decrypt(&compressor)?;
+        let encrypted_chunk = data_chunk.encrypt()?;
+        let decrypted_chunk = encrypted_chunk.decrypt()?;
 
         assert_eq!(decrypted_chunk.data_ref(), original_data);
 
