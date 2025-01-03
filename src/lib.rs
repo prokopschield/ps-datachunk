@@ -143,11 +143,11 @@ impl<'lt> DataChunk<'lt> {
 
     pub fn hash(&self) -> Arc<Hash> {
         match self {
-            Self::Aligned(aligned) => aligned.hash().into(),
+            Self::Aligned(aligned) => aligned.hash(),
             Self::Borrowed(borrowed) => borrowed.hash(),
             Self::Mbuf(mbuf) => mbuf.hash(),
-            Self::Owned(owned) => owned.hash().into(),
-            Self::Shared(shared) => shared.hash().into(),
+            Self::Owned(owned) => owned.hash(),
+            Self::Shared(shared) => shared.hash(),
         }
     }
 
