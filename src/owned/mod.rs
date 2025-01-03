@@ -62,26 +62,6 @@ impl OwnedDataChunk {
     }
 
     #[inline(always)]
-    /// converts this `OwnedDataChunk` into a `Vec<u8>`
-    /// - extends `self.hash`
-    /// - returns `self.data`
-    pub fn serialize_into(mut self) -> Vec<u8> {
-        serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());
-
-        self.data
-    }
-
-    #[inline(always)]
-    /// serializes this `OwnedDataChunk` into a newly allocated `Vec<u8>`
-    /// - allocated a new `Vec<u8>`
-    /// - copies `self.data` into the new `Vec<u8>`
-    /// - copies `self.hash` into the new `Vec<u8>`
-    /// - returns the new `Vec<u8>`
-    pub fn serialize(&self) -> Vec<u8> {
-        serializer::serialize_bytes_with_known_hash(&self.data, self.hash_ref())
-    }
-
-    #[inline(always)]
     /// - converts a `Vec<u8>` into an `OwnedDataChunk`
     /// - performs hash validation
     pub fn deserialize_from(data: Vec<u8>) -> Result<Self> {
@@ -111,7 +91,7 @@ impl OwnedDataChunk {
     #[inline(always)]
     /// Encrypts this [DataChunk].
     pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
-        Self::encrypt_serialized_bytes(&self.serialize(), compressor)
+        Self::encrypt_serialized_bytes(&self.serialize().into_buffer(), compressor)
     }
 
     #[inline(always)]

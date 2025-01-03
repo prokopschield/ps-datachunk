@@ -152,25 +152,6 @@ impl<'lt> DataChunk<'lt> {
     }
 
     #[inline(always)]
-    /// convert this [DataChunk] into a `Vec<u8>`
-    /// - `DataChunk::Mbuf()` is copied via `.to_owned()`
-    pub fn serialize_into(self) -> Vec<u8> {
-        match self {
-            Self::Borrowed(_) => self.to_owned().serialize_into(),
-            Self::Mbuf(_) => self.to_owned().serialize_into(),
-            Self::Owned(chunk) => chunk.serialize_into(),
-            Self::Aligned(aligned) => DataChunkTrait::to_owned(&aligned).serialize_into(),
-            Self::Shared(shared) => shared.to_owned().serialize_into(),
-        }
-    }
-
-    #[inline(always)]
-    /// Serializes this [DataChunk] into a new `Vec<u8>`.
-    pub fn serialize(&self) -> Vec<u8> {
-        self.to_owned().serialize_into()
-    }
-
-    #[inline(always)]
     /// Decrypts this [DataChunk] with a given key.
     pub fn decrypt(&self, key: &[u8], compressor: &Compressor) -> Result<SerializedDataChunk> {
         let decrypted = match self {
@@ -188,18 +169,13 @@ impl<'lt> DataChunk<'lt> {
     /// Encrypts this [DataChunk].
     pub fn encrypt(&self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         match self {
-            DataChunk::Borrowed(_) => {
-                OwnedDataChunk::encrypt_serialized_bytes(&self.serialize(), compressor)
-            }
-            DataChunk::Mbuf(_) => {
-                OwnedDataChunk::encrypt_serialized_bytes(&self.serialize(), compressor)
-            }
             DataChunk::Owned(owned) => owned.encrypt(compressor),
             DataChunk::Aligned(aligned) => OwnedDataChunk::encrypt_serialized_bytes(
                 aligned.serialize().serialized_bytes(),
                 compressor,
             ),
             DataChunk::Shared(shared) => shared.encrypt(compressor),
+            _ => self.serialize().encrypt(compressor),
         }
     }
 
@@ -254,7 +230,7 @@ mod tests {
         let data_chunk = DataChunk::Owned(owned_chunk);
 
         let serialized = data_chunk.serialize();
-        let deserialized = OwnedDataChunk::deserialize(&serialized)?;
+        let deserialized = OwnedDataChunk::deserialize(&serialized.into_buffer())?;
 
         assert_eq!(deserialized.data_ref(), original_data);
 
