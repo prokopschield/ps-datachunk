@@ -86,11 +86,11 @@ impl<T: Archive + ToTypedDataChunk<T>> ToDataChunk for T {
     }
 }
 
-pub unsafe trait ToTypedDataChunk<T: Archive> {
+pub trait ToTypedDataChunk<T: Archive> {
     fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>>;
 }
 
-unsafe impl<T> ToTypedDataChunk<T> for T
+impl<T> ToTypedDataChunk<T> for T
 where
     T: rkyv::Archive,
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
