@@ -183,11 +183,8 @@ impl<'lt> DataChunk<'lt> {
     /// Encrypts this [DataChunk] using `self.data` if owned.
     pub fn encrypt_mut(&mut self, compressor: &Compressor) -> Result<EncryptedDataChunk> {
         match self {
-            DataChunk::Borrowed(_) => self.encrypt(compressor),
-            DataChunk::Mbuf(_) => self.encrypt(compressor),
             DataChunk::Owned(chunk) => chunk.encrypt_mut(compressor),
-            DataChunk::Aligned(_) => self.encrypt(compressor),
-            DataChunk::Shared(shared) => shared.encrypt(compressor),
+            _ => self.encrypt(compressor),
         }
     }
 
