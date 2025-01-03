@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 use ps_buffer::Buffer;
 use ps_cypher::Compressor;
@@ -10,7 +10,7 @@ use crate::{
         offsets::offsets,
         rounding::round_down,
     },
-    DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
+    DataChunk, DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
 };
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -188,5 +188,35 @@ impl DataChunkTrait for SerializedDataChunk {
 
     fn hash_ref(&self) -> &[u8] {
         self.hash_ref()
+    }
+}
+
+impl AsRef<[u8]> for SerializedDataChunk {
+    fn as_ref(&self) -> &[u8] {
+        self
+    }
+}
+
+impl Deref for SerializedDataChunk {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        self.data_ref()
+    }
+}
+
+impl From<SerializedDataChunk> for DataChunk<'_> {
+    fn from(chunk: SerializedDataChunk) -> Self {
+        DataChunk::Serialized(chunk)
+    }
+}
+
+impl From<DataChunk<'_>> for SerializedDataChunk {
+    fn from(chunk: DataChunk) -> Self {
+        if let DataChunk::Serialized(chunk) = chunk {
+            chunk
+        } else {
+            chunk.serialize()
+        }
     }
 }
