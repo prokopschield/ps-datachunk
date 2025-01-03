@@ -20,6 +20,8 @@ pub use ps_hash::Hash;
 pub use ps_mbuf::Mbuf;
 pub use serialized::SerializedDataChunk;
 pub use shared::SharedDataChunk;
+pub use typed::ToDataChunk;
+pub use typed::ToTypedDataChunk;
 pub use typed::TypedDataChunk;
 
 use std::sync::Arc;
