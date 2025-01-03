@@ -81,6 +81,7 @@ pub enum DataChunk<'lt> {
     Borrowed(BorrowedDataChunk<'lt>),
     Mbuf(MbufDataChunk<'lt>),
     Owned(OwnedDataChunk),
+    Serialized(SerializedDataChunk),
     Shared(SharedDataChunk),
 }
 
@@ -127,6 +128,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Aligned(aligned) => aligned.data_ref(),
             Self::Mbuf(mbuf) => mbuf.data_ref(),
             Self::Owned(owned) => owned.data_ref(),
+            Self::Serialized(serialized) => serialized.data_ref(),
             Self::Shared(shared) => shared.data_ref(),
         }
     }
@@ -137,6 +139,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Borrowed(borrowed) => borrowed.hash_ref(),
             Self::Mbuf(mbuf) => mbuf.hash_ref(),
             Self::Owned(owned) => owned.hash_ref(),
+            Self::Serialized(serialized) => serialized.hash_ref(),
             Self::Shared(shared) => shared.hash_ref(),
         }
     }
@@ -147,6 +150,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Borrowed(borrowed) => borrowed.hash(),
             Self::Mbuf(mbuf) => mbuf.hash(),
             Self::Owned(owned) => owned.hash(),
+            Self::Serialized(serialized) => serialized.hash(),
             Self::Shared(shared) => shared.hash(),
         }
     }
@@ -159,6 +163,7 @@ impl<'lt> DataChunk<'lt> {
             Self::Mbuf(mbuf) => mbuf.decrypt(key, compressor),
             Self::Owned(chunk) => chunk.decrypt(key, compressor),
             Self::Aligned(aligned) => aligned.decrypt(key, compressor),
+            Self::Serialized(serialized) => serialized.decrypt(key, compressor),
             Self::Shared(shared) => shared.decrypt(key, compressor),
         }?;
 
@@ -174,6 +179,7 @@ impl<'lt> DataChunk<'lt> {
                 aligned.serialize().serialized_bytes(),
                 compressor,
             ),
+            DataChunk::Serialized(serialized) => serialized.encrypt(compressor),
             DataChunk::Shared(shared) => shared.encrypt(compressor),
             _ => self.serialize().encrypt(compressor),
         }
@@ -195,7 +201,7 @@ impl<'lt> DataChunk<'lt> {
         if remainder == 0 {
             self
         } else {
-            todo!() // DataChunk::Serialized(self.serialize())
+            DataChunk::Serialized(self.serialize())
         }
     }
 }
