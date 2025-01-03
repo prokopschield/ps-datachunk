@@ -25,6 +25,9 @@ where
 }
 
 impl<'lt, T: Archive> TypedDataChunk<'lt, T> {
+    /// # Safety
+    ///
+    /// Called guarantees that `chunk.data_ref()` contains a valid `T::Archive`
     pub unsafe fn from_chunk_unchecked(chunk: DataChunk<'lt>) -> Self {
         Self {
             chunk,
