@@ -24,7 +24,7 @@ impl<'lt> BorrowedDataChunk<'lt> {
 
 impl<'lt> DataChunkTrait for BorrowedDataChunk<'lt> {
     fn data_ref(&self) -> &[u8] {
-        &self.data
+        self.data
     }
     fn hash_ref(&self) -> &[u8] {
         self.hash.as_bytes()

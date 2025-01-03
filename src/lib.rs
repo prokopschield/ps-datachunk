@@ -56,7 +56,7 @@ pub trait DataChunkTrait {
 
         data_vec.extend_from_slice(data_ref);
 
-        OwnedDataChunk::from_parts(data_vec, self.hash().into())
+        OwnedDataChunk::from_parts(data_vec, self.hash())
     }
 
     fn serialize(&self) -> SerializedDataChunk {

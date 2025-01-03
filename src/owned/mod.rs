@@ -68,7 +68,7 @@ impl OwnedDataChunk {
     pub fn serialize_into(mut self) -> Vec<u8> {
         serializer::serialize_vec_with_known_hash(&mut self.data, self.hash.as_bytes());
 
-        return self.data;
+        self.data
     }
 
     #[inline(always)]
@@ -126,7 +126,7 @@ impl OwnedDataChunk {
 
         self.data.truncate(data_length);
 
-        return encrypted;
+        encrypted
     }
 }
 
@@ -146,7 +146,7 @@ impl<'lt> From<DataChunk<'lt>> for OwnedDataChunk {
     fn from(value: DataChunk<'lt>) -> Self {
         match value {
             DataChunk::Owned(owned) => owned,
-            _ => OwnedDataChunk::from_data_ref_and_hash(value.data_ref(), value.hash().into()),
+            _ => OwnedDataChunk::from_data_ref_and_hash(value.data_ref(), value.hash()),
         }
     }
 }

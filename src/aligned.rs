@@ -67,7 +67,7 @@ impl AlignedDataChunk {
         Ok(chunk)
     }
 
-    pub fn try_bytes_as<'lt, T: rkyv::Archive>(data: &'lt [u8]) -> Result<&'lt T::Archived>
+    pub fn try_bytes_as<T: rkyv::Archive>(data: &[u8]) -> Result<&T::Archived>
     where
         for<'a> <T as rkyv::Archive>::Archived:
             CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
@@ -75,7 +75,7 @@ impl AlignedDataChunk {
         Ok(rkyv::access::<T::Archived, Error>(data)?)
     }
 
-    pub fn try_as<'lt, T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
+    pub fn try_as<T: rkyv::Archive>(&self) -> Result<&T::Archived>
     where
         for<'a> <T as Archive>::Archived:
             CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
