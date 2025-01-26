@@ -8,7 +8,7 @@ use crate::{
     DataChunk, DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
 };
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
     buffer: Buffer,
     hash: Arc<Hash>,
@@ -65,7 +65,7 @@ impl SerializedDataChunk {
     /// This method does **NOT** verify `hash`!
     ///
     /// Call only if `hash` is surely known.
-    pub fn from_parts<D>(data: D, hash: Arc<Hash>) -> SerializedDataChunk
+    pub fn from_parts<D>(data: D, hash: Arc<Hash>) -> Result<SerializedDataChunk>
     where
         D: AsRef<[u8]>,
     {
@@ -75,13 +75,17 @@ impl SerializedDataChunk {
 
         let (hash_offset, size_offset, buffer_length) = offsets(length);
 
-        let mut buffer = Buffer::alloc(buffer_length);
+        let mut buffer = Buffer::with_capacity(buffer_length)?;
 
-        buffer[0..length].copy_from_slice(data);
-        buffer[hash_offset..hash_offset + hash.len()].copy_from_slice(hash.as_bytes());
-        buffer[size_offset..size_offset + length_bytes.len()].copy_from_slice(&length_bytes);
+        buffer.extend_from_slice(data)?;
+        buffer.resize(hash_offset, 0)?;
+        buffer.extend_from_slice(hash.as_bytes())?;
+        buffer.resize(size_offset, 0)?;
+        buffer.extend_from_slice(&length_bytes)?;
 
-        SerializedDataChunk { buffer, hash }
+        let chunk = SerializedDataChunk { buffer, hash };
+
+        Ok(chunk)
     }
 
     /// # Safety
@@ -105,11 +109,11 @@ impl SerializedDataChunk {
 
         let hash = Hash::try_from(hash)?.into();
 
-        Ok(Self::from_parts(data, hash))
+        Self::from_parts(data, hash)
     }
 
     /// Allocate a `SerializedDataChunk` containing `data`
-    pub fn from_data<D>(data: D) -> SerializedDataChunk
+    pub fn from_data<D>(data: D) -> Result<SerializedDataChunk>
     where
         D: AsRef<[u8]>,
     {
@@ -206,10 +210,12 @@ impl From<SerializedDataChunk> for DataChunk<'_> {
     }
 }
 
-impl From<DataChunk<'_>> for SerializedDataChunk {
-    fn from(chunk: DataChunk) -> Self {
+impl TryFrom<DataChunk<'_>> for SerializedDataChunk {
+    type Error = PsDataChunkError;
+
+    fn try_from(chunk: DataChunk) -> Result<Self> {
         if let DataChunk::Serialized(chunk) = chunk {
-            chunk
+            Ok(chunk)
         } else {
             chunk.serialize()
         }

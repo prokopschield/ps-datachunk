@@ -35,7 +35,7 @@ pub trait DataChunkTrait {
     }
 
     fn encrypt(&self) -> Result<EncryptedDataChunk> {
-        self.serialize().encrypt()
+        self.serialize()?.encrypt()
     }
 
     fn decrypt(&self, key: &[u8]) -> Result<SerializedDataChunk> {
@@ -60,7 +60,7 @@ pub trait DataChunkTrait {
         OwnedDataChunk::from_parts(data_vec, self.hash())
     }
 
-    fn serialize(&self) -> SerializedDataChunk {
+    fn serialize(&self) -> Result<SerializedDataChunk> {
         SerializedDataChunk::from_parts(self.data_ref(), self.hash())
     }
 
@@ -177,11 +177,11 @@ impl<'lt> DataChunk<'lt> {
         match self {
             DataChunk::Owned(owned) => owned.encrypt(),
             DataChunk::Aligned(aligned) => {
-                OwnedDataChunk::encrypt_serialized_bytes(aligned.serialize().serialized_bytes())
+                OwnedDataChunk::encrypt_serialized_bytes(aligned.serialize()?.serialized_bytes())
             }
             DataChunk::Serialized(serialized) => serialized.encrypt(),
             DataChunk::Shared(shared) => shared.encrypt(),
-            _ => self.serialize().encrypt(),
+            _ => self.serialize()?.encrypt(),
         }
     }
 
@@ -194,15 +194,17 @@ impl<'lt> DataChunk<'lt> {
         }
     }
 
-    pub fn guarantee_alignment<T>(self) -> DataChunk<'lt> {
+    pub fn guarantee_alignment<T>(self) -> Result<DataChunk<'lt>> {
         let align_size = std::mem::align_of::<T>();
         let remainder = self.data_ref().as_ptr() as usize % align_size;
 
-        if remainder == 0 {
+        let chunk = if remainder == 0 {
             self
         } else {
-            DataChunk::Serialized(self.serialize())
-        }
+            DataChunk::Serialized(self.serialize()?)
+        };
+
+        Ok(chunk)
     }
 }
 
@@ -231,7 +233,7 @@ mod tests {
         let owned_chunk = OwnedDataChunk::from_parts(original_data.to_vec(), hash);
         let data_chunk = DataChunk::Owned(owned_chunk);
 
-        let serialized = data_chunk.serialize();
+        let serialized = data_chunk.serialize()?;
         let deserialized = OwnedDataChunk::deserialize(&serialized.into_buffer())?;
 
         assert_eq!(deserialized.data_ref(), original_data);

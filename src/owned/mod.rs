@@ -87,7 +87,7 @@ impl OwnedDataChunk {
     #[inline(always)]
     /// Encrypts this [DataChunk].
     pub fn encrypt(&self) -> Result<EncryptedDataChunk> {
-        Self::encrypt_serialized_bytes(&self.serialize().into_buffer())
+        Self::encrypt_serialized_bytes(&self.serialize()?.into_buffer())
     }
 
     #[inline(always)]

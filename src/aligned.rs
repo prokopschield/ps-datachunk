@@ -129,7 +129,7 @@ mod tests {
             let data = (vec![i as u8; i], ());
             let chunk = AlignedDataChunk::try_from::<_>(&data)?;
 
-            assert_eq!(chunk.serialize().serialized_bytes().len() % 16, 0);
+            assert_eq!(chunk.serialize()?.serialized_bytes().len() % 16, 0);
 
             let (hash_offset, size_offset, size) = offsets(i);
 

@@ -12,10 +12,10 @@ opt-level = 3
 opt-level = 3
 
 [dependencies]
-ps-buffer = "0.1.0-4"
-ps-cypher = "0.1.0-11"
+ps-buffer = "0.1.0-6"
+ps-cypher = "0.1.0-12"
 ps-hash = "0.1.0-10"
 ps-mbuf = "0.1.0-4"
 rancor = "0.1.0"
-rkyv = { version = "0.8.9", features = ["bytecheck"] }
+rkyv = { version = "0.8.10", features = ["bytecheck"] }
 thiserror = "1.0.61"

@@ -1,9 +1,12 @@
 use std::array::TryFromSliceError;
 
+use ps_buffer::BufferError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum PsDataChunkError {
+    #[error(transparent)]
+    BufferError(#[from] BufferError),
     #[error(transparent)]
     PsCypherError(#[from] ps_cypher::PsCypherError),
     #[error(transparent)]
