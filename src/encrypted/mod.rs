@@ -21,6 +21,16 @@ impl EncryptedDataChunk {
     pub fn decrypt(&self) -> Result<SerializedDataChunk> {
         utils::decrypt(self.data_ref(), self.key.as_bytes())
     }
+
+    #[must_use]
+    pub fn key(&self) -> Arc<Hash> {
+        self.key.clone()
+    }
+
+    #[must_use]
+    pub const fn key_ref(&self) -> &Arc<Hash> {
+        &self.key
+    }
 }
 
 impl DataChunk for EncryptedDataChunk {
