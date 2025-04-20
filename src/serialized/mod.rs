@@ -3,9 +3,7 @@ use std::{ops::Deref, sync::Arc};
 use ps_buffer::Buffer;
 use ps_hash::{hash, Hash};
 
-use crate::{
-    utils::HASH_SIZE, DataChunk, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
-};
+use crate::{utils::HASH_SIZE, DataChunk, EncryptedDataChunk, PsDataChunkError, Result};
 
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
@@ -130,7 +128,7 @@ impl DataChunk for SerializedDataChunk {
     }
 
     fn encrypt(&self) -> Result<EncryptedDataChunk> {
-        OwnedDataChunk::encrypt_serialized_bytes(&self.buffer)
+        Ok(ps_cypher::encrypt(&self.buffer)?.into())
     }
 
     fn hash_ref(&self) -> &Hash {

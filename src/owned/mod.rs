@@ -1,5 +1,4 @@
 use crate::DataChunk;
-use crate::EncryptedDataChunk;
 use crate::Result;
 use ps_hash::Hash;
 use std::sync::Arc;
@@ -42,18 +41,6 @@ impl OwnedDataChunk {
         let hash = ps_hash::hash(&data)?;
 
         Ok(Self::from_parts(data, hash.into()))
-    }
-
-    #[inline]
-    /// Encrypts a serialized [`DataChunk`].
-    pub fn encrypt_serialized_bytes(bytes: &[u8]) -> Result<EncryptedDataChunk> {
-        Ok(ps_cypher::encrypt(bytes)?.into())
-    }
-
-    #[inline]
-    /// Encrypts this [`DataChunk`].
-    pub fn encrypt(&self) -> Result<EncryptedDataChunk> {
-        Self::encrypt_serialized_bytes(&self.serialize()?.into_buffer())
     }
 }
 
