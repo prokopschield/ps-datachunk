@@ -9,13 +9,14 @@ use rkyv::{
     Archive, Serialize,
 };
 
-use crate::*;
+use crate::{AlignedDataChunk, Arc, DataChunk, Hash, Result};
 
 pub struct TypedDataChunk<D: DataChunk, T: rkyv::Archive> {
     chunk: D,
     _p: PhantomData<T::Archived>,
 }
 
+#[must_use]
 pub fn check_byte_layout<'lt, T>(bytes: &[u8]) -> bool
 where
     T: Archive,
@@ -90,9 +91,9 @@ pub trait ToTypedDataChunk<T: Archive> {
 
 impl<T> ToTypedDataChunk<T> for T
 where
-    T: rkyv::Archive,
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
-    T: for<'a> Serialize<Strategy<Serializer<AlignedVec, ArenaHandle<'a>, Share>, Error>>,
+    T: rkyv::Archive
+        + for<'a> Serialize<Strategy<Serializer<AlignedVec, ArenaHandle<'a>, Share>, Error>>,
 {
     fn to_typed_datachunk(&self) -> Result<TypedDataChunk<AlignedDataChunk, T>> {
         let chunk = AlignedDataChunk::try_from::<T>(self)?;

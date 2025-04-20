@@ -11,7 +11,8 @@ pub struct BorrowedDataChunk<'lt> {
 }
 
 impl<'lt> BorrowedDataChunk<'lt> {
-    pub fn from_parts(data: &'lt [u8], hash: Arc<Hash>) -> Self {
+    #[must_use]
+    pub const fn from_parts(data: &'lt [u8], hash: Arc<Hash>) -> Self {
         Self { data, hash }
     }
 

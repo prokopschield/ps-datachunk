@@ -8,10 +8,12 @@ pub struct SharedDataChunk {
 }
 
 impl SharedDataChunk {
+    #[must_use]
     pub fn data(&self) -> Arc<[u8]> {
         self.data.clone()
     }
 
+    #[must_use]
     pub fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
     }
@@ -32,7 +34,8 @@ impl DataChunk for SharedDataChunk {
 }
 
 impl SharedDataChunk {
-    pub fn from_data_and_hash(data: Arc<[u8]>, hash: Arc<Hash>) -> Self {
+    #[must_use]
+    pub const fn from_data_and_hash(data: Arc<[u8]>, hash: Arc<Hash>) -> Self {
         Self { data, hash }
     }
 

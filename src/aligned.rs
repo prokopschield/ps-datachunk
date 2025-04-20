@@ -11,7 +11,7 @@ use rkyv::{
     Archive, Serialize,
 };
 
-use crate::*;
+use crate::{Arc, DataChunk, Hash, Result};
 
 #[derive(Debug, Clone)]
 pub struct AlignedDataChunk {
@@ -37,10 +37,12 @@ impl AlignedDataChunk {
         Ok(Self::from_parts(data, hash))
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.data.len()
     }

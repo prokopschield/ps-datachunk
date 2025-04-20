@@ -12,25 +12,29 @@ pub struct OwnedDataChunk {
 }
 
 impl OwnedDataChunk {
+    #[must_use]
     pub fn data_ref(&self) -> &[u8] {
         &self.data
     }
 
+    #[must_use]
     pub fn hash_ref(&self) -> &Hash {
         &self.hash
     }
 
+    #[must_use]
     pub fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
     }
 
-    /// Creates an OwnedDataChunk from its constituent parts
+    /// Creates an [`OwnedDataChunk`] from its constituent parts
     /// # Safety
     /// - `hash` must be the hash of `data`
     /// - use `from_data()` if you cannot ensure this
-    #[inline(always)]
-    pub fn from_parts(data: Vec<u8>, hash: Arc<Hash>) -> Self {
-        Self { data, hash }
+    #[inline]
+    #[must_use]
+    pub const fn from_parts(data: Vec<u8>, hash: Arc<Hash>) -> Self {
+        Self { hash, data }
     }
 
     /// calculates the hash of `data` and returns an `OwnedDataChunk`
@@ -40,14 +44,14 @@ impl OwnedDataChunk {
         Ok(Self::from_parts(data, hash.into()))
     }
 
-    #[inline(always)]
-    /// Encrypts a serialized [DataChunk].
+    #[inline]
+    /// Encrypts a serialized [`DataChunk`].
     pub fn encrypt_serialized_bytes(bytes: &[u8]) -> Result<EncryptedDataChunk> {
         Ok(ps_cypher::encrypt(bytes)?.into())
     }
 
-    #[inline(always)]
-    /// Encrypts this [DataChunk].
+    #[inline]
+    /// Encrypts this [`DataChunk`].
     pub fn encrypt(&self) -> Result<EncryptedDataChunk> {
         Self::encrypt_serialized_bytes(&self.serialize()?.into_buffer())
     }

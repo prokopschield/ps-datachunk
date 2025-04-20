@@ -1,3 +1,5 @@
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::module_name_repetitions)]
 pub mod aligned;
 pub mod borrowed;
 pub mod encrypted;
@@ -82,7 +84,7 @@ mod tests {
     fn test_serialization() -> Result<()> {
         let original_data = vec![1, 2, 3, 4, 5];
         let hash = ps_hash::hash(&original_data)?.into();
-        let data_chunk = OwnedDataChunk::from_parts(original_data.to_vec(), hash);
+        let data_chunk = OwnedDataChunk::from_parts(original_data.clone(), hash);
 
         let serialized = data_chunk.serialize()?;
 

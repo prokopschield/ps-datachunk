@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Result, SerializedDataChunk};
 
 pub fn decrypt<D, K>(encrypted: D, key: K) -> Result<SerializedDataChunk>
 where

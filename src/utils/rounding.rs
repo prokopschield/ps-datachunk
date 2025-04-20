@@ -1,3 +1,4 @@
+#[must_use]
 pub const fn round_up(value: usize, scale: usize) -> usize {
     match value {
         0 => 0,
@@ -5,6 +6,7 @@ pub const fn round_up(value: usize, scale: usize) -> usize {
     }
 }
 
+#[must_use]
 pub const fn round_down(value: usize, scale: usize) -> usize {
     (value >> scale) << scale
 }

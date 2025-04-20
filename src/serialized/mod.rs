@@ -14,11 +14,13 @@ pub struct SerializedDataChunk {
 }
 
 impl SerializedDataChunk {
-    pub fn data_length(&self) -> usize {
+    #[must_use]
+    pub const fn data_length(&self) -> usize {
         self.buffer.len().saturating_sub(HASH_SIZE)
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.buffer.len() <= HASH_SIZE
     }
 
@@ -29,7 +31,7 @@ impl SerializedDataChunk {
     /// This method does **NOT** verify `hash`!
     ///
     /// Call only if `hash` is surely known.
-    pub fn from_parts<D>(data: D, hash: Arc<Hash>) -> Result<SerializedDataChunk>
+    pub fn from_parts<D>(data: D, hash: Arc<Hash>) -> Result<Self>
     where
         D: AsRef<[u8]>,
     {
@@ -41,7 +43,7 @@ impl SerializedDataChunk {
         buffer.extend_from_slice(hash.as_bytes())?;
         buffer.extend_from_slice(data)?;
 
-        let chunk = SerializedDataChunk { buffer, hash };
+        let chunk = Self { buffer, hash };
 
         Ok(chunk)
     }
@@ -67,7 +69,7 @@ impl SerializedDataChunk {
     }
 
     /// Allocate a `SerializedDataChunk` containing `data`
-    pub fn from_data<D>(data: D) -> Result<SerializedDataChunk>
+    pub fn from_data<D>(data: D) -> Result<Self>
     where
         D: AsRef<[u8]>,
     {
@@ -76,8 +78,9 @@ impl SerializedDataChunk {
         Self::from_parts(data, hash(data)?.into())
     }
 
-    /// Returns a reference to this SerializedDataChunk's serialized bytes
-    #[inline(always)]
+    /// Returns a reference to this [`SerializedDataChunk`]'s serialized bytes
+    #[inline]
+    #[must_use]
     pub fn serialized_bytes(&self) -> &[u8] {
         &self.buffer
     }
@@ -108,13 +111,13 @@ impl SerializedDataChunk {
         Ok(chunk)
     }
 
-    #[inline(always)]
+    #[inline]
     /// extracts the serialized `Buffer` from this `SerializedDataChunk`
     pub fn into_buffer(self) -> Buffer {
         self.buffer
     }
 
-    #[inline(always)]
+    #[inline]
     /// extracts the serialized `Buffer` and `Hash` from this `SerializedDataChunk`
     pub fn into_parts(self) -> (Buffer, Arc<Hash>) {
         (self.buffer, self.hash)
