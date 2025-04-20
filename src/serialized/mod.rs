@@ -1,11 +1,10 @@
 use std::{ops::Deref, sync::Arc};
 
 use ps_buffer::Buffer;
-use ps_hash::{hash, verify_hash_integrity, Hash};
+use ps_hash::{hash, Hash};
 
 use crate::{
-    utils::{offsets, round_down, HASH_ALIGNMENT, HASH_SIZE, SIZE_ALIGNMENT, SIZE_SIZE},
-    DataChunk, DataChunkTrait, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
+    utils::HASH_SIZE, DataChunk, EncryptedDataChunk, OwnedDataChunk, PsDataChunkError, Result,
 };
 
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -15,47 +14,12 @@ pub struct SerializedDataChunk {
 }
 
 impl SerializedDataChunk {
-    pub const fn data_offset(&self) -> usize {
-        0
-    }
-
-    pub fn data_ref(&self) -> &[u8] {
-        let offset_start = self.data_offset();
-        let offset_end = offset_start + self.data_length();
-        let byte_range = offset_start..offset_end;
-
-        &self.buffer[byte_range]
-    }
-
-    pub const fn hash_offset(&self) -> usize {
-        round_down(self.buffer.len() - HASH_SIZE, HASH_ALIGNMENT)
-    }
-
-    pub fn hash_ref(&self) -> &[u8] {
-        let offset_start = self.hash_offset();
-        let offset_end = offset_start + std::mem::size_of::<Hash>();
-        let byte_range = offset_start..offset_end;
-
-        &self.buffer[byte_range]
-    }
-
-    pub const fn length_offset(&self) -> usize {
-        round_down(self.buffer.len() - SIZE_SIZE, SIZE_ALIGNMENT)
-    }
-
     pub fn data_length(&self) -> usize {
-        let offset_start = self.length_offset();
-        let offset_end = offset_start + std::mem::size_of::<usize>();
-        let byte_range = offset_start..offset_end;
-
-        match self.buffer[byte_range].try_into() {
-            Ok(bytes) => usize::from_le_bytes(bytes),
-            _ => 0,
-        }
+        self.buffer.len().saturating_sub(HASH_SIZE)
     }
 
     pub fn is_empty(&self) -> bool {
-        self.buffer.len() <= (HASH_SIZE + SIZE_SIZE)
+        self.buffer.len() <= HASH_SIZE
     }
 
     /// # Safety
@@ -70,18 +34,12 @@ impl SerializedDataChunk {
         D: AsRef<[u8]>,
     {
         let data = data.as_ref();
-        let length = data.len();
-        let length_bytes = length.to_le_bytes();
-
-        let (hash_offset, size_offset, buffer_length) = offsets(length);
+        let buffer_length = HASH_SIZE + data.len();
 
         let mut buffer = Buffer::with_capacity(buffer_length)?;
 
-        buffer.extend_from_slice(data)?;
-        buffer.resize(hash_offset, 0)?;
         buffer.extend_from_slice(hash.as_bytes())?;
-        buffer.resize(size_offset, 0)?;
-        buffer.extend_from_slice(&length_bytes)?;
+        buffer.extend_from_slice(data)?;
 
         let chunk = SerializedDataChunk { buffer, hash };
 
@@ -103,10 +61,6 @@ impl SerializedDataChunk {
         let data = data.as_ref();
         let hash = hash.as_ref();
 
-        if !verify_hash_integrity(hash) {
-            return Err(PsDataChunkError::InvalidChecksum);
-        }
-
         let hash = Hash::try_from(hash)?.into();
 
         Self::from_parts(data, hash)
@@ -119,7 +73,7 @@ impl SerializedDataChunk {
     {
         let data = data.as_ref();
 
-        Self::from_parts(data, hash(data).into())
+        Self::from_parts(data, hash(data)?.into())
     }
 
     /// Returns a reference to this SerializedDataChunk's serialized bytes
@@ -134,31 +88,22 @@ impl SerializedDataChunk {
     /// and its `hash` is recalculated and verified. However, other things,
     /// such as padding and buffer length, are not validated.
     pub fn from_serialized_buffer(buffer: Buffer) -> Result<Self> {
-        if buffer.len() < (HASH_SIZE + SIZE_SIZE) {
-            // the `buffer` must include, at least, a `hash` and a `length`.
-            return Err(PsDataChunkError::InvalidDataChunk)?;
+        if buffer.len() < HASH_SIZE {
+            return Err(PsDataChunkError::InvalidDataChunk);
         }
 
-        let len_offset = round_down(buffer.len() - SIZE_SIZE, SIZE_ALIGNMENT);
-        let hash_offset = round_down(len_offset - HASH_SIZE, HASH_ALIGNMENT);
+        let hash = &buffer[..HASH_SIZE];
+        let data = &buffer[HASH_SIZE..];
+        let calculated_hash = ps_hash::hash(data)?;
 
-        let length = usize::from_le_bytes(
-            (&buffer[len_offset..len_offset + std::mem::size_of::<usize>()]).try_into()?,
-        );
-
-        if length > hash_offset {
-            // `length` is obviously incorrect as `hash` would occupy the same bytes as `data`
-            return Err(PsDataChunkError::InvalidLength(length))?;
+        if hash != calculated_hash.as_bytes() {
+            return Err(PsDataChunkError::InvalidHash);
         }
 
-        let data = &buffer[0..length];
-        let hash = ps_hash::hash(data).into();
-        let chunk = Self { buffer, hash };
-
-        if chunk.hash_ref() != chunk.hash.as_bytes() {
-            // ensures data integrity
-            return Err(PsDataChunkError::InvalidChecksum)?;
-        }
+        let chunk = Self {
+            buffer,
+            hash: Arc::from(calculated_hash),
+        };
 
         Ok(chunk)
     }
@@ -176,17 +121,21 @@ impl SerializedDataChunk {
     }
 }
 
-impl DataChunkTrait for SerializedDataChunk {
+impl DataChunk for SerializedDataChunk {
     fn data_ref(&self) -> &[u8] {
-        self.data_ref()
+        &self.buffer[HASH_SIZE..]
     }
 
     fn encrypt(&self) -> Result<EncryptedDataChunk> {
         OwnedDataChunk::encrypt_serialized_bytes(&self.buffer)
     }
 
-    fn hash_ref(&self) -> &[u8] {
-        self.hash_ref()
+    fn hash_ref(&self) -> &Hash {
+        &self.hash
+    }
+
+    fn hash(&self) -> Arc<Hash> {
+        self.hash.clone()
     }
 }
 
@@ -201,23 +150,5 @@ impl Deref for SerializedDataChunk {
 
     fn deref(&self) -> &Self::Target {
         self.data_ref()
-    }
-}
-
-impl From<SerializedDataChunk> for DataChunk<'_> {
-    fn from(chunk: SerializedDataChunk) -> Self {
-        DataChunk::Serialized(chunk)
-    }
-}
-
-impl TryFrom<DataChunk<'_>> for SerializedDataChunk {
-    type Error = PsDataChunkError;
-
-    fn try_from(chunk: DataChunk) -> Result<Self> {
-        if let DataChunk::Serialized(chunk) = chunk {
-            Ok(chunk)
-        } else {
-            chunk.serialize()
-        }
     }
 }

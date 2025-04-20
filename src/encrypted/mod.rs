@@ -1,43 +1,45 @@
 use std::sync::Arc;
 
 use crate::utils;
-use crate::DataChunkTrait;
-use crate::OwnedDataChunk;
+use crate::DataChunk;
 use crate::Result;
 use crate::SerializedDataChunk;
+use ps_buffer::Buffer;
 use ps_cypher::Encrypted;
 use ps_hash::Hash;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// represents an encrypted chunk of data and the key needed to decrypt it
 pub struct EncryptedDataChunk {
-    pub chunk: OwnedDataChunk,
-    pub key: std::sync::Arc<Hash>,
+    data: Buffer,
+    hash: Arc<Hash>,
+    key: Arc<Hash>,
 }
 
 impl EncryptedDataChunk {
     /// Decrypts this `EncryptedDataChunk`.
     pub fn decrypt(&self) -> Result<SerializedDataChunk> {
-        utils::decrypt(self.chunk.data_ref(), self.key.as_bytes())
+        utils::decrypt(self.data_ref(), self.key.as_bytes())
     }
 }
 
-impl DataChunkTrait for EncryptedDataChunk {
+impl DataChunk for EncryptedDataChunk {
     fn data_ref(&self) -> &[u8] {
-        self.chunk.data_ref()
+        &self.data
     }
-    fn hash_ref(&self) -> &[u8] {
-        self.chunk.hash_ref()
+    fn hash_ref(&self) -> &Hash {
+        &self.hash
     }
     fn hash(&self) -> Arc<Hash> {
-        self.chunk.hash()
+        self.hash.clone()
     }
 }
 
 impl From<Encrypted> for EncryptedDataChunk {
     fn from(value: Encrypted) -> Self {
         Self {
-            chunk: OwnedDataChunk::from_parts(value.bytes, value.hash),
+            data: value.bytes,
+            hash: value.hash,
             key: value.key,
         }
     }

@@ -8,7 +8,7 @@ pub const HASH_ALIGNMENT: usize = 4;
 /// 8 bytes
 pub const SIZE_ALIGNMENT: usize = 3;
 
-/// 54 bytes
+/// 64 bytes
 pub const HASH_SIZE: usize = round_up(std::mem::size_of::<Hash>(), SIZE_ALIGNMENT);
 
 /// 8 bytes on x86-64

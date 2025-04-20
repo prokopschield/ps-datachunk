@@ -3,7 +3,7 @@ use std::sync::Arc;
 use ps_hash::Hash;
 use ps_mbuf::Mbuf;
 
-use crate::DataChunkTrait;
+use crate::DataChunk;
 
 #[derive(Clone, Copy)]
 pub struct MbufDataChunk<'lt> {
@@ -16,13 +16,13 @@ impl<'lt> From<&'lt Mbuf<'lt, Hash, u8>> for MbufDataChunk<'lt> {
     }
 }
 
-impl<'lt> DataChunkTrait for MbufDataChunk<'lt> {
+impl<'lt> DataChunk for MbufDataChunk<'lt> {
     fn data_ref(&self) -> &[u8] {
         self.inner
     }
 
-    fn hash_ref(&self) -> &[u8] {
-        self.inner.get_metadata().as_bytes()
+    fn hash_ref(&self) -> &Hash {
+        self.inner.get_metadata()
     }
 
     fn hash(&self) -> Arc<Hash> {

@@ -11,8 +11,8 @@ use rkyv::{
 
 use crate::*;
 
-pub struct TypedDataChunk<'lt, T: rkyv::Archive> {
-    chunk: DataChunk<'lt>,
+pub struct TypedDataChunk<D: DataChunk, T: rkyv::Archive> {
+    chunk: D,
     _p: PhantomData<T::Archived>,
 }
 
@@ -24,36 +24,29 @@ where
     rkyv::access::<T::Archived, Error>(bytes).is_ok()
 }
 
-impl<'lt, T: Archive> TypedDataChunk<'lt, T> {
-    /// # Safety
-    ///
-    /// Called guarantees that `chunk.data_ref()` contains a valid `T::Archive`
-    pub unsafe fn from_chunk_unchecked(chunk: DataChunk<'lt>) -> Self {
-        Self {
-            chunk,
-            _p: PhantomData,
-        }
-    }
-}
-
-impl<'lt, T> TryFrom<DataChunk<'lt>> for TypedDataChunk<'lt, T>
+impl<D, T> TypedDataChunk<D, T>
 where
+    D: DataChunk,
     T: Archive,
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
 {
-    type Error = PsDataChunkError;
+    pub fn from_data_chunk(chunk: D) -> Result<Self> {
+        rkyv::access::<T::Archived, Error>(chunk.data_ref())?;
 
-    fn try_from(chunk: DataChunk<'lt>) -> Result<TypedDataChunk<'lt, T>> {
-        match check_byte_layout::<T>(chunk.data_ref()) {
-            true => Ok(unsafe { TypedDataChunk::from_chunk_unchecked(chunk) }),
-            false => Err(PsDataChunkError::TypeError),
-        }
+        let chunk = Self {
+            _p: PhantomData,
+            chunk,
+        };
+
+        Ok(chunk)
     }
 }
 
-impl<'lt, T: Archive> Deref for TypedDataChunk<'lt, T>
+impl<D, T> Deref for TypedDataChunk<D, T>
 where
-    <T as Archive>::Archived: CheckBytes<HighValidator<'lt, Error>>,
+    D: DataChunk,
+    T: Archive,
+    for<'a> <T as Archive>::Archived: CheckBytes<HighValidator<'a, Error>>,
 {
     type Target = T::Archived;
 
@@ -62,12 +55,17 @@ where
     }
 }
 
-impl<'lt, T: Archive> DataChunkTrait for TypedDataChunk<'lt, T> {
+impl<D, T> DataChunk for TypedDataChunk<D, T>
+where
+    D: DataChunk,
+    T: Archive,
+    for<'a> <T as Archive>::Archived: CheckBytes<HighValidator<'a, Error>>,
+{
     fn data_ref(&self) -> &[u8] {
         self.chunk.data_ref()
     }
 
-    fn hash_ref(&self) -> &[u8] {
+    fn hash_ref(&self) -> &Hash {
         self.chunk.hash_ref()
     }
 
@@ -77,17 +75,17 @@ impl<'lt, T: Archive> DataChunkTrait for TypedDataChunk<'lt, T> {
 }
 
 pub trait ToDataChunk {
-    fn to_datachunk(&self) -> Result<DataChunk>;
+    fn to_datachunk(&self) -> Result<AlignedDataChunk>;
 }
 
 impl<T: Archive + ToTypedDataChunk<T>> ToDataChunk for T {
-    fn to_datachunk(&self) -> Result<DataChunk> {
+    fn to_datachunk(&self) -> Result<AlignedDataChunk> {
         Ok(self.to_typed_datachunk()?.chunk)
     }
 }
 
 pub trait ToTypedDataChunk<T: Archive> {
-    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>>;
+    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<AlignedDataChunk, T>>;
 }
 
 impl<T> ToTypedDataChunk<T> for T
@@ -96,11 +94,9 @@ where
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
     T: for<'a> Serialize<Strategy<Serializer<AlignedVec, ArenaHandle<'a>, Share>, Error>>,
 {
-    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<'static, T>> {
-        let aligned = AlignedDataChunk::try_from::<T>(self)?;
-        let chunk = DataChunk::Aligned(aligned);
-        let typed = unsafe { TypedDataChunk::from_chunk_unchecked(chunk) };
+    fn to_typed_datachunk(&self) -> Result<TypedDataChunk<AlignedDataChunk, T>> {
+        let chunk = AlignedDataChunk::try_from::<T>(self)?;
 
-        Ok(typed)
+        TypedDataChunk::from_data_chunk(chunk)
     }
 }

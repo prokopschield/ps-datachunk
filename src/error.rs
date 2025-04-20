@@ -1,12 +1,21 @@
 use std::array::TryFromSliceError;
 
 use ps_buffer::BufferError;
+use ps_cypher::{DecryptionError, EncryptionError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum PsDataChunkError {
     #[error(transparent)]
     BufferError(#[from] BufferError),
+    #[error(transparent)]
+    DecryptionError(#[from] DecryptionError),
+    #[error(transparent)]
+    EncryptionError(#[from] EncryptionError),
+    #[error(transparent)]
+    HashError(#[from] ps_hash::HashError),
+    #[error(transparent)]
+    HashValidationError(#[from] ps_hash::HashValidationError),
     #[error(transparent)]
     PsCypherError(#[from] ps_cypher::PsCypherError),
     #[error(transparent)]
@@ -18,7 +27,7 @@ pub enum PsDataChunkError {
     #[error("The data chunk was not correctly layed out")]
     InvalidDataChunk,
     #[error("The hash of a chunk was incorrect")]
-    InvalidChecksum,
+    InvalidHash,
     #[error("Invalid length: {0}")]
     InvalidLength(usize),
     #[error("This should never happen: {0}")]

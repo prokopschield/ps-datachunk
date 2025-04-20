@@ -31,10 +31,10 @@ impl AlignedDataChunk {
         Self { data, hash }
     }
 
-    pub fn from_data_vec(data: AlignedVec) -> Self {
-        let hash = hash(&data);
+    pub fn from_data_vec(data: AlignedVec) -> Result<Self> {
+        let hash = hash(&data)?;
 
-        Self::from_parts(data, hash)
+        Ok(Self::from_parts(data, hash))
     }
 
     pub fn is_empty(&self) -> bool {
@@ -66,9 +66,8 @@ impl AlignedDataChunk {
         for<'a> T: Archive + Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
     {
         let data = rkyv::to_bytes::<Error>(value)?;
-        let chunk = Self::from_data_vec(data);
 
-        Ok(chunk)
+        Self::from_data_vec(data)
     }
 
     pub fn try_bytes_as<T: rkyv::Archive>(data: &[u8]) -> Result<&T::Archived>
@@ -88,56 +87,14 @@ impl AlignedDataChunk {
     }
 }
 
-impl DataChunkTrait for AlignedDataChunk {
+impl DataChunk for AlignedDataChunk {
     fn data_ref(&self) -> &[u8] {
         self
     }
-    fn hash_ref(&self) -> &[u8] {
-        self.hash.as_bytes()
+    fn hash_ref(&self) -> &Hash {
+        &self.hash
     }
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
-    }
-}
-
-impl<'lt> DataChunk<'lt> {
-    pub fn try_from<T>(value: &T) -> Result<Self>
-    where
-        T: Archive + for<'a> Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
-    {
-        Ok(Self::Aligned(AlignedDataChunk::try_from(value)?))
-    }
-
-    pub fn try_as<T: rkyv::Archive>(&'lt self) -> Result<&'lt T::Archived>
-    where
-        for<'a> <T as Archive>::Archived:
-            CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
-    {
-        AlignedDataChunk::try_bytes_as::<T>(self.data_ref())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use utils::offsets;
-
-    use super::*;
-
-    #[test]
-    fn test_chunk_length_divisibility_and_part_alignment() -> Result<()> {
-        for i in 12..256 {
-            let data = (vec![i as u8; i], ());
-            let chunk = AlignedDataChunk::try_from::<_>(&data)?;
-
-            assert_eq!(chunk.serialize()?.serialized_bytes().len() % 16, 0);
-
-            let (hash_offset, size_offset, size) = offsets(i);
-
-            assert_eq!(hash_offset % 16, 0);
-            assert_eq!(size_offset % 8, 0);
-            assert_eq!(size % 16, 0);
-        }
-
-        Ok(())
     }
 }

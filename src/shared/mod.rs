@@ -1,5 +1,4 @@
-use crate::DataChunk;
-use crate::DataChunkTrait;
+use crate::{DataChunk, PsDataChunkError, Result};
 use ps_hash::Hash;
 use std::sync::Arc;
 
@@ -18,21 +17,17 @@ impl SharedDataChunk {
     }
 }
 
-impl DataChunkTrait for SharedDataChunk {
+impl DataChunk for SharedDataChunk {
     fn data_ref(&self) -> &[u8] {
         &self.data
     }
 
-    fn hash_ref(&self) -> &[u8] {
-        self.hash.as_bytes()
+    fn hash_ref(&self) -> &Hash {
+        &self.hash
     }
 
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
-    }
-
-    fn to_owned(&self) -> crate::OwnedDataChunk {
-        crate::OwnedDataChunk::from_data_ref_and_hash(self.data_ref(), self.hash())
     }
 }
 
@@ -41,33 +36,25 @@ impl SharedDataChunk {
         Self { data, hash }
     }
 
-    pub fn from_data(data: Arc<[u8]>) -> Self {
-        let hash = Arc::from(ps_hash::hash(&data));
+    pub fn from_data(data: Arc<[u8]>) -> Result<Self> {
+        let hash = Arc::from(ps_hash::hash(&data)?);
 
-        Self::from_data_and_hash(data, hash)
+        Ok(Self::from_data_and_hash(data, hash))
     }
 }
 
-impl From<Arc<[u8]>> for SharedDataChunk {
-    fn from(data: Arc<[u8]>) -> Self {
+impl TryFrom<Arc<[u8]>> for SharedDataChunk {
+    type Error = PsDataChunkError;
+
+    fn try_from(data: Arc<[u8]>) -> Result<Self> {
         Self::from_data(data)
     }
 }
 
-impl From<&Arc<[u8]>> for SharedDataChunk {
-    fn from(data: &Arc<[u8]>) -> Self {
+impl TryFrom<&Arc<[u8]>> for SharedDataChunk {
+    type Error = PsDataChunkError;
+
+    fn try_from(data: &Arc<[u8]>) -> Result<Self> {
         Self::from_data(data.clone())
-    }
-}
-
-impl<'lt> From<Arc<[u8]>> for DataChunk<'lt> {
-    fn from(data: Arc<[u8]>) -> Self {
-        DataChunk::Shared(data.into())
-    }
-}
-
-impl<'lt> From<&Arc<[u8]>> for DataChunk<'lt> {
-    fn from(data: &Arc<[u8]>) -> Self {
-        DataChunk::Shared(data.into())
     }
 }
