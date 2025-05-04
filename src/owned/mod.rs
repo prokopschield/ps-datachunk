@@ -1,5 +1,6 @@
 use crate::DataChunk;
 use crate::Result;
+use bytes::Bytes;
 use ps_hash::Hash;
 use std::sync::Arc;
 
@@ -7,7 +8,7 @@ use std::sync::Arc;
 /// represents an owned chunk of data
 pub struct OwnedDataChunk {
     hash: Arc<Hash>,
-    data: Vec<u8>,
+    data: Bytes,
 }
 
 impl OwnedDataChunk {
@@ -32,15 +33,30 @@ impl OwnedDataChunk {
     /// - use `from_data()` if you cannot ensure this
     #[inline]
     #[must_use]
-    pub const fn from_parts(data: Vec<u8>, hash: Arc<Hash>) -> Self {
+    pub const fn from_parts(data: Bytes, hash: Arc<Hash>) -> Self {
         Self { hash, data }
     }
 
+    pub fn from_data_and_hash<D>(data: D, hash: Arc<Hash>) -> Self
+    where
+        D: AsRef<[u8]> + Send + 'static,
+    {
+        Self::from_parts(Bytes::from_owner(data), hash)
+    }
+
     /// calculates the hash of `data` and returns an `OwnedDataChunk`
-    pub fn from_data(data: Vec<u8>) -> Result<Self> {
+    pub fn from_bytes(data: Bytes) -> Result<Self> {
         let hash = ps_hash::hash(&data)?;
 
         Ok(Self::from_parts(data, hash.into()))
+    }
+
+    /// calculates the hash of `data` and returns an `OwnedDataChunk`
+    pub fn from_data<D>(data: D) -> Result<Self>
+    where
+        D: AsRef<[u8]> + Send + 'static,
+    {
+        Self::from_bytes(Bytes::from_owner(data))
     }
 }
 

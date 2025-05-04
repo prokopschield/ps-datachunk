@@ -12,6 +12,7 @@ opt-level = 3
 opt-level = 3
 
 [dependencies]
+bytes = "1.10.1"
 ps-buffer = "0.1.0-18"
 ps-cypher = "0.1.0-16"
 ps-hash = "0.1.0-12"
