@@ -30,12 +30,14 @@ pub enum PsDataChunkError {
     InvalidHash,
     #[error("Invalid length: {0}")]
     InvalidLength(usize),
+    #[error(transparent)]
+    RkyvInvalidArchive(anyhow::Error),
+    #[error(transparent)]
+    RkyvSerializationFailed(anyhow::Error),
     #[error("This should never happen: {0}")]
     ShouldNotHaveFailed(&'static str),
     #[error("DataChunk content does not match the type it is being interpreted as")]
     TypeError,
-    #[error(transparent)]
-    Rancor(#[from] rancor::Error),
 }
 
 pub type Result<T> = std::result::Result<T, PsDataChunkError>;

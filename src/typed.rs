@@ -32,7 +32,8 @@ where
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
 {
     pub fn from_data_chunk(chunk: D) -> Result<Self> {
-        rkyv::access::<T::Archived, Error>(chunk.data_ref())?;
+        rkyv::access::<T::Archived, Error>(chunk.data_ref())
+            .map_err(|err| crate::PsDataChunkError::RkyvInvalidArchive(err.into()))?;
 
         let chunk = Self {
             _p: PhantomData,
