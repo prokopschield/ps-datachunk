@@ -74,6 +74,13 @@ where
     fn hash(&self) -> Arc<Hash> {
         self.chunk.hash()
     }
+
+    /// Transforms this chunk into an [`OwnedDataChunk`]
+    fn into_owned(self) -> crate::OwnedDataChunk {
+        let Self { chunk, _p } = self;
+
+        chunk.into_owned()
+    }
 }
 
 pub trait ToDataChunk {

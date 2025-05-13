@@ -53,6 +53,11 @@ where
         SerializedDataChunk::from_parts(self.data_ref(), self.hash())
     }
 
+    /// Copies this [`DataChunk`] into a new [`OwnedDataChunk`].
+    fn into_owned(self) -> OwnedDataChunk {
+        OwnedDataChunk::from_data_and_hash(Arc::from(self.data_ref()), self.hash())
+    }
+
     fn try_as<T: rkyv::Archive>(self) -> Result<TypedDataChunk<Self, T>>
     where
         T::Archived:

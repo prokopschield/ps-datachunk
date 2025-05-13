@@ -31,6 +31,13 @@ impl DataChunk for SharedDataChunk {
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
     }
+
+    /// Transforms this chunk into an [`OwnedDataChunk`]
+    fn into_owned(self) -> crate::OwnedDataChunk {
+        let Self { data, hash } = self;
+
+        crate::OwnedDataChunk::from_data_and_hash(data, hash)
+    }
 }
 
 impl SharedDataChunk {

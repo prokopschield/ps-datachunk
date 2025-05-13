@@ -70,4 +70,9 @@ impl DataChunk for OwnedDataChunk {
     fn hash(&self) -> Arc<Hash> {
         self.hash()
     }
+
+    /// Transforms this chunk into an [`OwnedDataChunk`]
+    fn into_owned(self) -> Self {
+        self
+    }
 }

@@ -138,6 +138,13 @@ impl DataChunk for SerializedDataChunk {
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
     }
+
+    /// Transforms this chunk into an [`OwnedDataChunk`]
+    fn into_owned(self) -> crate::OwnedDataChunk {
+        let hash = self.hash();
+
+        crate::OwnedDataChunk::from_data_and_hash(self, hash)
+    }
 }
 
 impl AsRef<[u8]> for SerializedDataChunk {
