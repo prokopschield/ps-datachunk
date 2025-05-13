@@ -1,15 +1,9 @@
 [package]
 name = "ps-datachunk"
-description = "Chunk-based data encrypter"
 version = "0.1.0-20"
 edition = "2021"
+description = "Chunk-based data encrypter"
 license = "GPL-3.0-or-later"
-
-[profile.dev]
-opt-level = 3
-
-[profile.release]
-opt-level = 3
 
 [dependencies]
 anyhow = "1.0.98"
@@ -21,3 +15,9 @@ ps-mbuf = "0.1.0-4"
 rancor = "0.1.0"
 rkyv = { version = "0.8.10", features = ["bytecheck"] }
 thiserror = "2.0.12"
+
+[profile.dev]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
