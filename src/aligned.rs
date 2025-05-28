@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use bytes::Bytes;
 use ps_hash::hash;
 use rancor::{Error, Strategy};
 use rkyv::{
@@ -100,6 +101,11 @@ impl DataChunk for AlignedDataChunk {
     }
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
+    }
+
+    /// Transforms this [`DataChunk`] into [`Bytes`].
+    fn into_bytes(self) -> Bytes {
+        Bytes::from_owner(self.data)
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]

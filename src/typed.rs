@@ -1,5 +1,6 @@
 use std::{marker::PhantomData, ops::Deref};
 
+use bytes::Bytes;
 use rancor::{Error, Strategy};
 use rkyv::{
     api::high::HighValidator,
@@ -73,6 +74,11 @@ where
 
     fn hash(&self) -> Arc<Hash> {
         self.chunk.hash()
+    }
+
+    /// Transforms this [`DataChunk`] into [`Bytes`].
+    fn into_bytes(self) -> Bytes {
+        self.chunk.into_bytes()
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]

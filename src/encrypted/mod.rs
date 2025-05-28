@@ -4,7 +4,9 @@ use crate::utils;
 use crate::DataChunk;
 use crate::Result;
 use crate::SerializedDataChunk;
+use bytes::Bytes;
 use ps_buffer::Buffer;
+use ps_buffer::SharedBuffer;
 use ps_cypher::Encrypted;
 use ps_hash::Hash;
 
@@ -42,6 +44,11 @@ impl DataChunk for EncryptedDataChunk {
     }
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
+    }
+
+    /// Transforms this [`DataChunk`] into [`Bytes`].
+    fn into_bytes(self) -> Bytes {
+        Bytes::from_owner(SharedBuffer::from(self.data))
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]

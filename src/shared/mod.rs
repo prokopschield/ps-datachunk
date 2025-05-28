@@ -1,4 +1,5 @@
 use crate::{DataChunk, PsDataChunkError, Result};
+use bytes::Bytes;
 use ps_hash::Hash;
 use std::sync::Arc;
 
@@ -30,6 +31,11 @@ impl DataChunk for SharedDataChunk {
 
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
+    }
+
+    /// Transforms this [`DataChunk`] into [`Bytes`].
+    fn into_bytes(self) -> Bytes {
+        Bytes::from_owner(self.data)
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]

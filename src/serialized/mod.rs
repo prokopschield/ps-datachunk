@@ -1,6 +1,7 @@
 use std::{ops::Deref, sync::Arc};
 
-use ps_buffer::Buffer;
+use bytes::Bytes;
+use ps_buffer::{Buffer, SharedBuffer};
 use ps_hash::{hash, Hash};
 
 use crate::{utils::HASH_SIZE, DataChunk, EncryptedDataChunk, PsDataChunkError, Result};
@@ -137,6 +138,11 @@ impl DataChunk for SerializedDataChunk {
 
     fn hash(&self) -> Arc<Hash> {
         self.hash.clone()
+    }
+
+    /// Transforms this [`DataChunk`] into [`Bytes`].
+    fn into_bytes(self) -> Bytes {
+        Bytes::from_owner(SharedBuffer::from(self.buffer)).slice(HASH_SIZE..)
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]

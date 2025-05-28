@@ -12,6 +12,7 @@ pub mod typed;
 pub mod utils;
 pub use aligned::AlignedDataChunk;
 pub use borrowed::BorrowedDataChunk;
+pub use bytes::Bytes;
 pub use encrypted::EncryptedDataChunk;
 pub use error::PsDataChunkError;
 pub use error::Result;
@@ -51,6 +52,11 @@ where
 
     fn serialize(&self) -> Result<SerializedDataChunk> {
         SerializedDataChunk::from_parts(self.data_ref(), self.hash())
+    }
+
+    /// Transforms this [`DataChunk`] into [`Bytes`].
+    fn into_bytes(self) -> Bytes {
+        Bytes::from_owner(Arc::from(self.data_ref()))
     }
 
     /// Copies this [`DataChunk`] into a new [`OwnedDataChunk`].
