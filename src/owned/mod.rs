@@ -73,7 +73,7 @@ impl DataChunk for OwnedDataChunk {
 
     /// Transforms this [`DataChunk`] into [`Bytes`].
     fn into_bytes(self) -> Bytes {
-        Bytes::from_owner(self.data)
+        self.data
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]
