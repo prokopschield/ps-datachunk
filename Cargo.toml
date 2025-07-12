@@ -1,6 +1,6 @@
 [package]
 name = "ps-datachunk"
-version = "0.1.0-25"
+version = "0.1.0-26"
 edition = "2021"
 description = "Chunk-based data encrypter"
 license = "GPL-3.0-or-later"
