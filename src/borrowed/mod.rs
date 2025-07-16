@@ -34,6 +34,13 @@ impl<'lt> DataChunk for BorrowedDataChunk<'lt> {
         self.hash.clone()
     }
 
+    fn borrow(&self) -> BorrowedDataChunk {
+        Self {
+            data: self.data,
+            hash: self.hash(),
+        }
+    }
+
     /// Transforms this chunk into an [`OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash } = self;
