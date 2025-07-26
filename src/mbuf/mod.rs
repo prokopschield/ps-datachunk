@@ -16,7 +16,7 @@ impl<'lt> From<&'lt Mbuf<'lt, Hash, u8>> for MbufDataChunk<'lt> {
     }
 }
 
-impl<'lt> DataChunk for MbufDataChunk<'lt> {
+impl DataChunk for MbufDataChunk<'_> {
     fn data_ref(&self) -> &[u8] {
         self.inner
     }

@@ -23,7 +23,7 @@ impl<'lt> BorrowedDataChunk<'lt> {
     }
 }
 
-impl<'lt> DataChunk for BorrowedDataChunk<'lt> {
+impl DataChunk for BorrowedDataChunk<'_> {
     fn data_ref(&self) -> &[u8] {
         self.data
     }
