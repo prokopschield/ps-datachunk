@@ -2,6 +2,7 @@
 #![allow(clippy::module_name_repetitions)]
 pub mod aligned;
 pub mod borrowed;
+pub mod cow;
 pub mod encrypted;
 pub mod error;
 pub mod mbuf;
@@ -13,6 +14,7 @@ pub mod utils;
 pub use aligned::AlignedDataChunk;
 pub use borrowed::BorrowedDataChunk;
 pub use bytes::Bytes;
+pub use cow::CowDataChunk;
 pub use encrypted::EncryptedDataChunk;
 pub use error::PsDataChunkError;
 pub use error::Result;
