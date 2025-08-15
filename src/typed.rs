@@ -34,7 +34,7 @@ where
 {
     pub fn from_data_chunk(chunk: D) -> Result<Self> {
         rkyv::access::<T::Archived, Error>(chunk.data_ref())
-            .map_err(|err| crate::PsDataChunkError::RkyvInvalidArchive(err.into()))?;
+            .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)?;
 
         let chunk = Self {
             _p: PhantomData,

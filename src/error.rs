@@ -30,10 +30,10 @@ pub enum PsDataChunkError {
     InvalidHash,
     #[error("Invalid length: {0}")]
     InvalidLength(usize),
-    #[error(transparent)]
-    RkyvInvalidArchive(anyhow::Error),
-    #[error(transparent)]
-    RkyvSerializationFailed(anyhow::Error),
+    #[error("Rkyv deserialization failed")]
+    RkyvInvalidArchive,
+    #[error("Rkyv serialization failed")]
+    RkyvSerializationFailed,
     #[error("This should never happen: {0}")]
     ShouldNotHaveFailed(&'static str),
     #[error("DataChunk content does not match the type it is being interpreted as")]

@@ -69,7 +69,7 @@ impl AlignedDataChunk {
         for<'a> T: Archive + Serialize<HighSerializer<AlignedVec, ArenaHandle<'a>, Error>>,
     {
         let data = rkyv::to_bytes::<Error>(value)
-            .map_err(|err| crate::PsDataChunkError::RkyvSerializationFailed(err.into()))?;
+            .map_err(|_| crate::PsDataChunkError::RkyvSerializationFailed)?;
 
         Self::from_data_vec(data)
     }
@@ -80,7 +80,7 @@ impl AlignedDataChunk {
             CheckBytes<Strategy<Validator<ArchiveValidator<'a>, SharedValidator>, rancor::Error>>,
     {
         rkyv::access::<T::Archived, Error>(data)
-            .map_err(|err| crate::PsDataChunkError::RkyvInvalidArchive(err.into()))
+            .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)
     }
 
     pub fn try_as<T: rkyv::Archive>(&self) -> Result<&T::Archived>

@@ -6,7 +6,6 @@ description = "Chunk-based data encrypter"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-anyhow = "1.0.99"
 bytes = "1.10.1"
 ps-buffer = "0.1.0-20"
 ps-cypher = "0.1.0-22"
