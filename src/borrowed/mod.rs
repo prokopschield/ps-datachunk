@@ -1,3 +1,5 @@
+mod implementations;
+
 use std::sync::Arc;
 
 use ps_hash::Hash;
