@@ -34,7 +34,7 @@ impl DataChunk for BorrowedDataChunk<'_> {
         self.hash.clone()
     }
 
-    fn borrow(&self) -> BorrowedDataChunk {
+    fn borrow(&self) -> BorrowedDataChunk<'_> {
         Self {
             data: self.data,
             hash: self.hash(),

@@ -46,7 +46,7 @@ where
         utils::decrypt(self.data_ref(), key)
     }
 
-    fn borrow(&self) -> BorrowedDataChunk {
+    fn borrow(&self) -> BorrowedDataChunk<'_> {
         BorrowedDataChunk::from_parts(self.data_ref(), self.hash())
     }
 
