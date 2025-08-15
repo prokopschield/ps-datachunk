@@ -6,15 +6,15 @@ description = "Chunk-based data encrypter"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.99"
 bytes = "1.10.1"
 ps-buffer = "0.1.0-20"
 ps-cypher = "0.1.0-22"
 ps-hash = "0.1.0-18"
 ps-mbuf = "0.1.0-4"
 rancor = "0.1.0"
-rkyv = { version = "0.8.10", features = ["bytecheck"] }
-thiserror = "2.0.12"
+rkyv = { version = "0.8.11", features = ["bytecheck"] }
+thiserror = "2.0.14"
 
 [profile.dev]
 opt-level = 3
