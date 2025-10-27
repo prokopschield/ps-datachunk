@@ -2,9 +2,9 @@ use std::{ops::Deref, sync::Arc};
 
 use bytes::Bytes;
 use ps_buffer::{Buffer, SharedBuffer};
-use ps_hash::{hash, Hash};
+use ps_hash::{hash, Hash, HASH_SIZE};
 
-use crate::{utils::HASH_SIZE, DataChunk, EncryptedDataChunk, PsDataChunkError, Result};
+use crate::{DataChunk, EncryptedDataChunk, PsDataChunkError, Result};
 
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
@@ -39,7 +39,7 @@ impl SerializedDataChunk {
 
         let mut buffer = Buffer::with_capacity(buffer_length)?;
 
-        buffer.extend_from_slice(hash.as_bytes())?;
+        buffer.extend_from_slice(hash.to_string())?;
         buffer.extend_from_slice(data)?;
 
         let chunk = Self { buffer, hash };
@@ -98,7 +98,7 @@ impl SerializedDataChunk {
         let data = &buffer[HASH_SIZE..];
         let calculated_hash = ps_hash::hash(data)?;
 
-        if hash != calculated_hash.as_bytes() {
+        if hash != calculated_hash.to_string().as_bytes() {
             return Err(PsDataChunkError::InvalidHash);
         }
 

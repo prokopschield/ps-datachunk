@@ -1,11 +1,9 @@
+use ps_hash::Hash;
+
 use crate::{Result, SerializedDataChunk};
 
-pub fn decrypt<D, K>(encrypted: D, key: K) -> Result<SerializedDataChunk>
-where
-    D: AsRef<[u8]>,
-    K: AsRef<[u8]>,
-{
-    let buffer = ps_cypher::decrypt(encrypted.as_ref(), key.as_ref())?;
+pub fn decrypt(encrypted: impl AsRef<[u8]>, key: &Hash) -> Result<SerializedDataChunk> {
+    let buffer = ps_cypher::decrypt(encrypted.as_ref(), key)?;
 
     let chunk = SerializedDataChunk::from_serialized_buffer(buffer)?;
 

@@ -19,8 +19,6 @@ pub enum PsDataChunkError {
     #[error(transparent)]
     PsCypherError(#[from] ps_cypher::PsCypherError),
     #[error(transparent)]
-    PsHashError(#[from] ps_hash::PsHashError),
-    #[error(transparent)]
     TryFromSliceError(#[from] TryFromSliceError),
     #[error("Failed to serialize into an AlignedDataChunk")]
     SerializationError,

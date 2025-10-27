@@ -44,7 +44,7 @@ where
         self.serialize()?.encrypt()
     }
 
-    fn decrypt(&self, key: &[u8]) -> Result<SerializedDataChunk> {
+    fn decrypt(&self, key: &Hash) -> Result<SerializedDataChunk> {
         utils::decrypt(self.data_ref(), key)
     }
 
