@@ -63,8 +63,8 @@ impl From<Encrypted> for EncryptedDataChunk {
     fn from(value: Encrypted) -> Self {
         Self {
             data: value.bytes,
-            hash: value.hash,
-            key: value.key,
+            hash: Arc::new(value.hash),
+            key: Arc::new(value.key),
         }
     }
 }
