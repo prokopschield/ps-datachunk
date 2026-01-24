@@ -10,7 +10,7 @@ use rkyv::{
     Archive, Serialize,
 };
 
-use crate::{AlignedDataChunk, Arc, DataChunk, Hash, Result};
+use crate::{AlignedDataChunk, DataChunk, Hash, Result};
 
 pub struct TypedDataChunk<D: DataChunk, T: rkyv::Archive> {
     chunk: D,
@@ -72,7 +72,7 @@ where
         self.chunk.hash_ref()
     }
 
-    fn hash(&self) -> Arc<Hash> {
+    fn hash(&self) -> Hash {
         self.chunk.hash()
     }
 

@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc};
+use std::ops::Deref;
 
 use bytes::Bytes;
 use ps_buffer::{Buffer, SharedBuffer};
@@ -9,7 +9,7 @@ use crate::{DataChunk, EncryptedDataChunk, PsDataChunkError, Result};
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
     buffer: Buffer,
-    hash: Arc<Hash>,
+    hash: Hash,
 }
 
 impl SerializedDataChunk {
@@ -30,7 +30,7 @@ impl SerializedDataChunk {
     /// This method does **NOT** verify `hash`!
     ///
     /// Call only if `hash` is surely known.
-    pub fn from_parts<D>(data: D, hash: Arc<Hash>) -> Result<Self>
+    pub fn from_parts<D>(data: D, hash: Hash) -> Result<Self>
     where
         D: AsRef<[u8]>,
     {
@@ -62,7 +62,7 @@ impl SerializedDataChunk {
         let data = data.as_ref();
         let hash = hash.as_ref();
 
-        let hash = Hash::try_from(hash)?.into();
+        let hash = Hash::try_from(hash)?;
 
         Self::from_parts(data, hash)
     }
@@ -74,7 +74,7 @@ impl SerializedDataChunk {
     {
         let data = data.as_ref();
 
-        Self::from_parts(data, hash(data)?.into())
+        Self::from_parts(data, hash(data)?)
     }
 
     /// Returns a reference to this [`SerializedDataChunk`]'s serialized bytes
@@ -104,7 +104,7 @@ impl SerializedDataChunk {
 
         let chunk = Self {
             buffer,
-            hash: Arc::from(calculated_hash),
+            hash: calculated_hash,
         };
 
         Ok(chunk)
@@ -118,7 +118,7 @@ impl SerializedDataChunk {
 
     #[inline]
     /// extracts the serialized `Buffer` and `Hash` from this `SerializedDataChunk`
-    pub fn into_parts(self) -> (Buffer, Arc<Hash>) {
+    pub fn into_parts(self) -> (Buffer, Hash) {
         (self.buffer, self.hash)
     }
 }
@@ -136,8 +136,8 @@ impl DataChunk for SerializedDataChunk {
         &self.hash
     }
 
-    fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    fn hash(&self) -> Hash {
+        self.hash
     }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].

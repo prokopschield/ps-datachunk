@@ -4,12 +4,11 @@ use crate::DataChunk;
 use crate::Result;
 use bytes::Bytes;
 use ps_hash::Hash;
-use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// represents an owned chunk of data
 pub struct OwnedDataChunk {
-    hash: Arc<Hash>,
+    hash: Hash,
     data: Bytes,
 }
 
@@ -20,13 +19,13 @@ impl OwnedDataChunk {
     }
 
     #[must_use]
-    pub fn hash_ref(&self) -> &Hash {
+    pub const fn hash_ref(&self) -> &Hash {
         &self.hash
     }
 
     #[must_use]
-    pub fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    pub const fn hash(&self) -> Hash {
+        self.hash
     }
 
     /// Creates an [`OwnedDataChunk`] from its constituent parts
@@ -35,11 +34,11 @@ impl OwnedDataChunk {
     /// - use `from_data()` if you cannot ensure this
     #[inline]
     #[must_use]
-    pub const fn from_parts(data: Bytes, hash: Arc<Hash>) -> Self {
+    pub const fn from_parts(data: Bytes, hash: Hash) -> Self {
         Self { hash, data }
     }
 
-    pub fn from_data_and_hash<D>(data: D, hash: Arc<Hash>) -> Self
+    pub fn from_data_and_hash<D>(data: D, hash: Hash) -> Self
     where
         D: AsRef<[u8]> + Send + 'static,
     {
@@ -50,7 +49,7 @@ impl OwnedDataChunk {
     pub fn from_bytes(data: Bytes) -> Result<Self> {
         let hash = ps_hash::hash(&data)?;
 
-        Ok(Self::from_parts(data, hash.into()))
+        Ok(Self::from_parts(data, hash))
     }
 
     /// calculates the hash of `data` and returns an `OwnedDataChunk`
@@ -69,7 +68,7 @@ impl DataChunk for OwnedDataChunk {
     fn hash_ref(&self) -> &Hash {
         self.hash_ref()
     }
-    fn hash(&self) -> Arc<Hash> {
+    fn hash(&self) -> Hash {
         self.hash()
     }
 

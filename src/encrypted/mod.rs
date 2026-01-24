@@ -1,4 +1,3 @@
-use std::sync::Arc;
 
 use crate::utils;
 use crate::DataChunk;
@@ -14,8 +13,8 @@ use ps_hash::Hash;
 /// represents an encrypted chunk of data and the key needed to decrypt it
 pub struct EncryptedDataChunk {
     data: Buffer,
-    hash: Arc<Hash>,
-    key: Arc<Hash>,
+    hash: Hash,
+    key: Hash,
 }
 
 impl EncryptedDataChunk {
@@ -25,12 +24,12 @@ impl EncryptedDataChunk {
     }
 
     #[must_use]
-    pub fn key(&self) -> Arc<Hash> {
-        self.key.clone()
+    pub const fn key(&self) -> Hash {
+        self.key
     }
 
     #[must_use]
-    pub const fn key_ref(&self) -> &Arc<Hash> {
+    pub const fn key_ref(&self) -> &Hash {
         &self.key
     }
 }
@@ -42,8 +41,8 @@ impl DataChunk for EncryptedDataChunk {
     fn hash_ref(&self) -> &Hash {
         &self.hash
     }
-    fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    fn hash(&self) -> Hash {
+        self.hash
     }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].
@@ -63,8 +62,8 @@ impl From<Encrypted> for EncryptedDataChunk {
     fn from(value: Encrypted) -> Self {
         Self {
             data: value.bytes,
-            hash: Arc::new(value.hash),
-            key: Arc::new(value.key),
+            hash: value.hash,
+            key: value.key,
         }
     }
 }

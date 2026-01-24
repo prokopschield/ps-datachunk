@@ -12,19 +12,19 @@ use rkyv::{
     Archive, Serialize,
 };
 
-use crate::{Arc, DataChunk, Hash, Result};
+use crate::{DataChunk, Hash, Result};
 
 #[derive(Debug, Clone)]
 pub struct AlignedDataChunk {
     data: AlignedVec,
-    hash: Arc<Hash>,
+    hash: Hash,
 }
 
 impl AlignedDataChunk {
     pub fn from_parts<D, H>(data: D, hash: H) -> Self
     where
         D: Into<AlignedVec>,
-        H: Into<Arc<Hash>>,
+        H: Into<Hash>,
     {
         let data = data.into();
         let hash = hash.into();
@@ -99,8 +99,8 @@ impl DataChunk for AlignedDataChunk {
     fn hash_ref(&self) -> &Hash {
         &self.hash
     }
-    fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    fn hash(&self) -> Hash {
+        self.hash
     }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].

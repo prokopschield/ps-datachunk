@@ -9,19 +9,19 @@ use crate::{DataChunk, Result};
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BorrowedDataChunk<'lt> {
     data: &'lt [u8],
-    hash: Arc<Hash>,
+    hash: Hash,
 }
 
 impl<'lt> BorrowedDataChunk<'lt> {
     #[must_use]
-    pub const fn from_parts(data: &'lt [u8], hash: Arc<Hash>) -> Self {
+    pub const fn from_parts(data: &'lt [u8], hash: Hash) -> Self {
         Self { data, hash }
     }
 
     pub fn from_data(data: &'lt [u8]) -> Result<Self> {
         let hash = ps_hash::hash(data)?;
 
-        Ok(Self::from_parts(data, hash.into()))
+        Ok(Self::from_parts(data, hash))
     }
 }
 
@@ -32,8 +32,8 @@ impl DataChunk for BorrowedDataChunk<'_> {
     fn hash_ref(&self) -> &Hash {
         &self.hash
     }
-    fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    fn hash(&self) -> Hash {
+        self.hash
     }
 
     fn borrow(&self) -> BorrowedDataChunk<'_> {

@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 pub struct SharedDataChunk {
     data: Arc<[u8]>,
-    hash: Arc<Hash>,
+    hash: Hash,
 }
 
 impl SharedDataChunk {
@@ -15,8 +15,8 @@ impl SharedDataChunk {
     }
 
     #[must_use]
-    pub fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    pub const fn hash(&self) -> Hash {
+        self.hash
     }
 }
 
@@ -29,8 +29,8 @@ impl DataChunk for SharedDataChunk {
         &self.hash
     }
 
-    fn hash(&self) -> Arc<Hash> {
-        self.hash.clone()
+    fn hash(&self) -> Hash {
+        self.hash
     }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].
@@ -48,12 +48,12 @@ impl DataChunk for SharedDataChunk {
 
 impl SharedDataChunk {
     #[must_use]
-    pub const fn from_data_and_hash(data: Arc<[u8]>, hash: Arc<Hash>) -> Self {
+    pub const fn from_data_and_hash(data: Arc<[u8]>, hash: Hash) -> Self {
         Self { data, hash }
     }
 
     pub fn from_data(data: Arc<[u8]>) -> Result<Self> {
-        let hash = Arc::from(ps_hash::hash(&data)?);
+        let hash = ps_hash::hash(&data)?;
 
         Ok(Self::from_data_and_hash(data, hash))
     }

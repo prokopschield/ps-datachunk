@@ -27,8 +27,8 @@ impl DataChunk for MbufDataChunk<'_> {
         self.inner.get_metadata()
     }
 
-    fn hash(&self) -> Arc<Hash> {
-        Arc::from(*self.inner.get_metadata())
+    fn hash(&self) -> Hash {
+        *self.inner.get_metadata()
     }
 
     /// Transforms this chunk into an [`OwnedDataChunk`]

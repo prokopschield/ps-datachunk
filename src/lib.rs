@@ -38,7 +38,7 @@ where
     fn data_ref(&self) -> &[u8];
     fn hash_ref(&self) -> &Hash;
 
-    fn hash(&self) -> Arc<Hash>;
+    fn hash(&self) -> Hash;
 
     fn encrypt(&self) -> Result<EncryptedDataChunk> {
         self.serialize()?.encrypt()
