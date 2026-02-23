@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_serialization() -> Result<()> {
         let original_data = vec![1, 2, 3, 4, 5];
-        let hash = ps_hash::hash(&original_data)?.into();
+        let hash = ps_hash::hash(&original_data)?;
         let data_chunk = OwnedDataChunk::from_data_and_hash(original_data.clone(), hash);
 
         let serialized = data_chunk.serialize()?;
