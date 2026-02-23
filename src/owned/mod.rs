@@ -13,6 +13,14 @@ pub struct OwnedDataChunk {
 }
 
 impl OwnedDataChunk {
+    /// Returns this chunk's bytes.
+    ///
+    /// This is a cheap clone of the underlying `Bytes` buffer.
+    #[must_use]
+    pub fn bytes(&self) -> Bytes {
+        self.data.clone()
+    }
+
     #[must_use]
     pub fn data_ref(&self) -> &[u8] {
         &self.data
