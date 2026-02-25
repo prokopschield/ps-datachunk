@@ -34,6 +34,7 @@ where
     T: Archive,
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
 {
+    /// Builds a typed view after validating that the byte layout is a valid archived `T`.
     pub fn from_data_chunk(chunk: D) -> Result<Self> {
         rkyv::access::<T::Archived, Error>(chunk.data_ref())
             .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)?;
@@ -44,6 +45,15 @@ where
         };
 
         Ok(chunk)
+    }
+
+    /// Returns a checked typed reference.
+    ///
+    /// Unlike [`Deref`], this method always validates the underlying bytes before
+    /// returning the archived value.
+    pub fn typed_ref(&self) -> Result<&T::Archived> {
+        rkyv::access::<T::Archived, Error>(self.chunk.data_ref())
+            .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)
     }
 }
 
@@ -56,6 +66,11 @@ where
     type Target = T::Archived;
 
     fn deref(&self) -> &Self::Target {
+        // SAFETY:
+        // - `from_data_chunk` validates that `chunk.data_ref()` contains a valid `T::Archived`.
+        // - `TypedDataChunk` only exposes shared access to `chunk`, so no mutation happens
+        //   through this type after validation.
+        // - This relies on the `DataChunk` contract that bytes behind shared references are stable.
         unsafe { rkyv::access_unchecked::<T::Archived>(self.chunk.data_ref()) }
     }
 }
@@ -111,5 +126,30 @@ where
         let chunk = AlignedDataChunk::try_from::<T>(self)?;
 
         TypedDataChunk::from_data_chunk(chunk)
+    }
+}
+
+#[allow(clippy::expect_used)]
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{OwnedDataChunk, PsDataChunkError};
+
+    #[test]
+    fn typed_ref_returns_checked_ref() -> Result<()> {
+        let typed = 42_u32.to_typed_datachunk()?;
+
+        assert_eq!(*typed.typed_ref()?, 42_u32);
+
+        Ok(())
+    }
+
+    #[test]
+    fn from_data_chunk_rejects_invalid_archive() {
+        let chunk = OwnedDataChunk::from_data([1_u8, 2, 3]).expect("hashing failed");
+
+        let result = TypedDataChunk::<OwnedDataChunk, u32>::from_data_chunk(chunk);
+
+        assert!(matches!(result, Err(PsDataChunkError::RkyvInvalidArchive)));
     }
 }
