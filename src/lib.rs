@@ -49,11 +49,11 @@ where
     }
 
     fn borrow(&self) -> BorrowedDataChunk<'_> {
-        BorrowedDataChunk::from_parts(self.data_ref(), self.hash())
+        BorrowedDataChunk::from_parts_unchecked(self.data_ref(), self.hash())
     }
 
     fn serialize(&self) -> Result<SerializedDataChunk> {
-        SerializedDataChunk::from_parts(self.data_ref(), self.hash())
+        SerializedDataChunk::from_parts_unchecked(self.data_ref(), self.hash())
     }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].
@@ -63,7 +63,7 @@ where
 
     /// Copies this [`DataChunk`] into a new [`OwnedDataChunk`].
     fn into_owned(self) -> OwnedDataChunk {
-        OwnedDataChunk::from_data_and_hash(Arc::from(self.data_ref()), self.hash())
+        OwnedDataChunk::from_data_and_hash_unchecked(Arc::from(self.data_ref()), self.hash())
     }
 
     fn try_as<T: rkyv::Archive>(self) -> Result<TypedDataChunk<Self, T>>
@@ -97,7 +97,7 @@ mod tests {
     fn test_serialization() -> Result<()> {
         let original_data = vec![1, 2, 3, 4, 5];
         let hash = ps_hash::hash(&original_data)?;
-        let data_chunk = OwnedDataChunk::from_data_and_hash(original_data.clone(), hash);
+        let data_chunk = OwnedDataChunk::from_data_and_hash_unchecked(original_data.clone(), hash);
 
         let serialized = data_chunk.serialize()?;
 

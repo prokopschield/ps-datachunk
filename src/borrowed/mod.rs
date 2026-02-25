@@ -14,14 +14,14 @@ pub struct BorrowedDataChunk<'lt> {
 
 impl<'lt> BorrowedDataChunk<'lt> {
     #[must_use]
-    pub const fn from_parts(data: &'lt [u8], hash: Hash) -> Self {
+    pub const fn from_parts_unchecked(data: &'lt [u8], hash: Hash) -> Self {
         Self { data, hash }
     }
 
     pub fn from_data(data: &'lt [u8]) -> Result<Self> {
         let hash = ps_hash::hash(data)?;
 
-        Ok(Self::from_parts(data, hash))
+        Ok(Self::from_parts_unchecked(data, hash))
     }
 }
 
@@ -47,12 +47,12 @@ impl DataChunk for BorrowedDataChunk<'_> {
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash } = self;
 
-        crate::OwnedDataChunk::from_data_and_hash(Arc::from(data), hash)
+        crate::OwnedDataChunk::from_data_and_hash_unchecked(Arc::from(data), hash)
     }
 }
 
 impl<'lt, T: DataChunk> From<&'lt T> for BorrowedDataChunk<'lt> {
     fn from(chunk: &'lt T) -> Self {
-        Self::from_parts(chunk.data_ref(), chunk.hash())
+        Self::from_parts_unchecked(chunk.data_ref(), chunk.hash())
     }
 }

@@ -36,28 +36,28 @@ impl OwnedDataChunk {
         self.hash
     }
 
-    /// Creates an [`OwnedDataChunk`] from its constituent parts
+    /// Creates an [`OwnedDataChunk`] from its constituent parts.
     /// # Safety
     /// - `hash` must be the hash of `data`
     /// - use `from_data()` if you cannot ensure this
     #[inline]
     #[must_use]
-    pub const fn from_parts(data: Bytes, hash: Hash) -> Self {
+    pub const fn from_parts_unchecked(data: Bytes, hash: Hash) -> Self {
         Self { hash, data }
     }
 
-    pub fn from_data_and_hash<D>(data: D, hash: Hash) -> Self
+    pub fn from_data_and_hash_unchecked<D>(data: D, hash: Hash) -> Self
     where
         D: AsRef<[u8]> + Send + 'static,
     {
-        Self::from_parts(Bytes::from_owner(data), hash)
+        Self::from_parts_unchecked(Bytes::from_owner(data), hash)
     }
 
     /// calculates the hash of `data` and returns an `OwnedDataChunk`
     pub fn from_bytes(data: Bytes) -> Result<Self> {
         let hash = ps_hash::hash(&data)?;
 
-        Ok(Self::from_parts(data, hash))
+        Ok(Self::from_parts_unchecked(data, hash))
     }
 
     /// calculates the hash of `data` and returns an `OwnedDataChunk`

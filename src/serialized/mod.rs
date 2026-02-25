@@ -30,7 +30,7 @@ impl SerializedDataChunk {
     /// This method does **NOT** verify `hash`!
     ///
     /// Call only if `hash` is surely known.
-    pub fn from_parts<D>(data: D, hash: Hash) -> Result<Self>
+    pub fn from_parts_unchecked<D>(data: D, hash: Hash) -> Result<Self>
     where
         D: AsRef<[u8]>,
     {
@@ -64,7 +64,7 @@ impl SerializedDataChunk {
 
         let hash = Hash::try_from(hash)?;
 
-        Self::from_parts(data, hash)
+        Self::from_parts_unchecked(data, hash)
     }
 
     /// Allocate a `SerializedDataChunk` containing `data`
@@ -74,7 +74,7 @@ impl SerializedDataChunk {
     {
         let data = data.as_ref();
 
-        Self::from_parts(data, hash(data)?)
+        Self::from_parts_unchecked(data, hash(data)?)
     }
 
     /// Returns a reference to this [`SerializedDataChunk`]'s serialized bytes
@@ -149,7 +149,7 @@ impl DataChunk for SerializedDataChunk {
     fn into_owned(self) -> crate::OwnedDataChunk {
         let hash = self.hash();
 
-        crate::OwnedDataChunk::from_data_and_hash(self, hash)
+        crate::OwnedDataChunk::from_data_and_hash_unchecked(self, hash)
     }
 }
 

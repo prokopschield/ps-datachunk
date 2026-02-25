@@ -21,7 +21,7 @@ pub struct AlignedDataChunk {
 }
 
 impl AlignedDataChunk {
-    pub fn from_parts<D, H>(data: D, hash: H) -> Self
+    pub fn from_parts_unchecked<D, H>(data: D, hash: H) -> Self
     where
         D: Into<AlignedVec>,
         H: Into<Hash>,
@@ -35,7 +35,7 @@ impl AlignedDataChunk {
     pub fn from_data_vec(data: AlignedVec) -> Result<Self> {
         let hash = hash(&data)?;
 
-        Ok(Self::from_parts(data, hash))
+        Ok(Self::from_parts_unchecked(data, hash))
     }
 
     #[must_use]
@@ -112,6 +112,6 @@ impl DataChunk for AlignedDataChunk {
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash } = self;
 
-        crate::OwnedDataChunk::from_data_and_hash(data, hash)
+        crate::OwnedDataChunk::from_data_and_hash_unchecked(data, hash)
     }
 }

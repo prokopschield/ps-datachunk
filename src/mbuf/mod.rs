@@ -33,6 +33,6 @@ impl DataChunk for MbufDataChunk<'_> {
 
     /// Transforms this chunk into an [`OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
-        crate::OwnedDataChunk::from_data_and_hash(Arc::from(self.data_ref()), self.hash())
+        crate::OwnedDataChunk::from_data_and_hash_unchecked(Arc::from(self.data_ref()), self.hash())
     }
 }

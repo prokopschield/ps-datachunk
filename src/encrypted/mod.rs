@@ -53,7 +53,7 @@ impl DataChunk for EncryptedDataChunk {
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash, key: _ } = self;
 
-        crate::OwnedDataChunk::from_data_and_hash(data, hash)
+        crate::OwnedDataChunk::from_data_and_hash_unchecked(data, hash)
     }
 }
 

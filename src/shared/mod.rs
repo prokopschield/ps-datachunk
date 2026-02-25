@@ -42,7 +42,7 @@ impl DataChunk for SharedDataChunk {
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash } = self;
 
-        crate::OwnedDataChunk::from_data_and_hash(data, hash)
+        crate::OwnedDataChunk::from_data_and_hash_unchecked(data, hash)
     }
 }
 

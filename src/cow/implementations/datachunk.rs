@@ -4,7 +4,7 @@ use crate::{BorrowedDataChunk, CowDataChunk, DataChunk, OwnedDataChunk};
 
 impl DataChunk for CowDataChunk<'_> {
     fn borrow(&self) -> BorrowedDataChunk<'_> {
-        BorrowedDataChunk::from_parts(self.data_ref(), self.hash())
+        BorrowedDataChunk::from_parts_unchecked(self.data_ref(), self.hash())
     }
 
     fn data_ref(&self) -> &[u8] {
