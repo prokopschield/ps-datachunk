@@ -47,26 +47,6 @@ impl SerializedDataChunk {
         Ok(chunk)
     }
 
-    /// Builds a chunk from `data` and an external hash value.
-    ///
-    /// This method validates only that `hash` bytes can be parsed into a valid [`Hash`].
-    /// It does **not** recalculate `hash(data)`.
-    ///
-    /// Use [`Self::from_data`] when you want a checked constructor that calculates
-    /// the hash from bytes.
-    pub fn try_from_parts_unchecked<D, H>(data: D, hash: H) -> Result<Self>
-    where
-        D: AsRef<[u8]>,
-        H: AsRef<[u8]>,
-    {
-        let data = data.as_ref();
-        let hash = hash.as_ref();
-
-        let hash = Hash::try_from(hash)?;
-
-        Self::from_parts_unchecked(data, hash)
-    }
-
     /// Allocate a `SerializedDataChunk` containing `data`
     pub fn from_data<D>(data: D) -> Result<Self>
     where
@@ -169,11 +149,11 @@ mod tests {
     use crate::{DataChunk, OwnedDataChunk};
 
     #[test]
-    fn try_from_parts_unchecked_accepts_matching_hash() -> Result<()> {
+    fn from_parts_unchecked_accepts_matching_hash() -> Result<()> {
         let data = b"hello world";
         let hash = ps_hash::hash(data)?;
 
-        let chunk = SerializedDataChunk::try_from_parts_unchecked(data, hash.to_string())?;
+        let chunk = SerializedDataChunk::from_parts_unchecked(data, hash)?;
 
         assert_eq!(chunk.data_ref(), data);
 
@@ -181,12 +161,11 @@ mod tests {
     }
 
     #[test]
-    fn try_from_parts_unchecked_accepts_mismatched_hash() -> Result<()> {
+    fn from_parts_unchecked_accepts_mismatched_hash() -> Result<()> {
         let data = b"hello world";
         let mismatched_hash = ps_hash::hash(b"other bytes")?;
 
-        let chunk =
-            SerializedDataChunk::try_from_parts_unchecked(data, mismatched_hash.to_string())?;
+        let chunk = SerializedDataChunk::from_parts_unchecked(data, mismatched_hash)?;
 
         assert_eq!(chunk.data_ref(), data);
         assert_eq!(chunk.hash(), mismatched_hash);
