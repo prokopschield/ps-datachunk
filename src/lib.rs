@@ -28,12 +28,24 @@ pub use typed::TypedDataChunk;
 
 use std::sync::Arc;
 
-/// represents any representation of a chunk of data
+/// Represents any representation of a chunk of data.
+///
+/// # Invariants
+///
+/// Implementers must treat the bytes and hash exposed through `&self` as immutable and stable.
+/// In practice this means:
+/// - Repeated calls to [`Self::data_ref`] must point to the same logical bytes while `self` is borrowed.
+/// - Repeated calls to [`Self::hash_ref`] must return the hash for those same bytes.
+/// - Neither value may change through interior mutability while `self` is borrowed.
+///
+/// `TypedDataChunk` relies on this contract for its unchecked deref fast path.
 pub trait DataChunk
 where
     Self: Sized,
 {
+    /// Returns a stable view of the underlying bytes.
     fn data_ref(&self) -> &[u8];
+    /// Returns a stable view of the hash corresponding to [`Self::data_ref`].
     fn hash_ref(&self) -> &Hash;
 
     fn hash(&self) -> Hash {

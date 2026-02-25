@@ -35,6 +35,9 @@ where
     T::Archived: for<'a> CheckBytes<HighValidator<'a, Error>>,
 {
     /// Builds a typed view after validating that the byte layout is a valid archived `T`.
+    ///
+    /// This method assumes `D` upholds [`crate::DataChunk`] invariants (stable, immutable
+    /// bytes/hash for `&self`) for the lifetime of this value.
     pub fn from_data_chunk(chunk: D) -> Result<Self> {
         rkyv::access::<T::Archived, Error>(chunk.data_ref())
             .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)?;
@@ -70,7 +73,7 @@ where
         // - `from_data_chunk` validates that `chunk.data_ref()` contains a valid `T::Archived`.
         // - `TypedDataChunk` only exposes shared access to `chunk`, so no mutation happens
         //   through this type after validation.
-        // - This relies on the `DataChunk` contract that bytes behind shared references are stable.
+        // - This relies on the `DataChunk` contract that bytes/hash are stable and immutable for `&self`.
         unsafe { rkyv::access_unchecked::<T::Archived>(self.chunk.data_ref()) }
     }
 }
