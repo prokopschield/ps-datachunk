@@ -47,13 +47,13 @@ impl SerializedDataChunk {
         Ok(chunk)
     }
 
-    /// # Safety
+    /// Builds a chunk from `data` and an external hash value.
     ///
-    /// Called guarantees that `hash` is `hash(data)`
+    /// This method validates only that `hash` bytes can be parsed into a valid [`Hash`].
+    /// It does **not** recalculate `hash(data)`.
     ///
-    /// This method does **NOT** verify `hash`!
-    ///
-    /// This method only verifies the internal checksum of `hash`, and will return `Err(PsDataChunkError::InvalidChecksum)` if this is invalid.
+    /// Use [`Self::from_data`] when you want a checked constructor that calculates
+    /// the hash from bytes.
     pub fn try_from_parts<D, H>(data: D, hash: H) -> Result<Self>
     where
         D: AsRef<[u8]>,
@@ -160,5 +160,35 @@ impl Deref for SerializedDataChunk {
 
     fn deref(&self) -> &Self::Target {
         self.data_ref()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn try_from_parts_accepts_matching_hash() -> Result<()> {
+        let data = b"hello world";
+        let hash = ps_hash::hash(data)?;
+
+        let chunk = SerializedDataChunk::try_from_parts(data, hash.to_string())?;
+
+        assert_eq!(chunk.data_ref(), data);
+
+        Ok(())
+    }
+
+    #[test]
+    fn try_from_parts_accepts_mismatched_hash() -> Result<()> {
+        let data = b"hello world";
+        let mismatched_hash = ps_hash::hash(b"other bytes")?;
+
+        let chunk = SerializedDataChunk::try_from_parts(data, mismatched_hash.to_string())?;
+
+        assert_eq!(chunk.data_ref(), data);
+        assert_eq!(chunk.hash(), mismatched_hash);
+
+        Ok(())
     }
 }
