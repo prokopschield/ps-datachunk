@@ -3,6 +3,9 @@ name = "ps-datachunk"
 version = "0.1.0-35"
 edition = "2021"
 description = "Chunk-based data encrypter"
+documentation = "https://docs.rs/ps-datachunk"
+homepage = "https://github.com/prokopschield/ps-datachunk"
+repository = "https://github.com/prokopschield/ps-datachunk"
 license = "GPL-3.0-or-later"
 
 [dependencies]
