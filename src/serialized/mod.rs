@@ -166,6 +166,7 @@ impl Deref for SerializedDataChunk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{DataChunk, OwnedDataChunk};
 
     #[test]
     fn try_from_parts_accepts_matching_hash() -> Result<()> {
@@ -188,6 +189,19 @@ mod tests {
 
         assert_eq!(chunk.data_ref(), data);
         assert_eq!(chunk.hash(), mismatched_hash);
+
+        Ok(())
+    }
+
+    #[test]
+    fn serialize_owned_chunk_roundtrip_data() -> Result<()> {
+        let original_data = vec![1, 2, 3, 4, 5];
+        let hash = ps_hash::hash(&original_data)?;
+        let data_chunk = OwnedDataChunk::from_data_and_hash_unchecked(original_data.clone(), hash);
+
+        let serialized = data_chunk.serialize()?;
+
+        assert_eq!(serialized.data_ref(), original_data);
 
         Ok(())
     }

@@ -81,6 +81,7 @@ where
 mod tests {
     use super::*;
 
+    // Keep crate-root tests for cross-module flow behavior.
     #[test]
     fn test_encryption_decryption() -> Result<()> {
         let original_data = "Neboť tak Bůh miluje svět, že dal [svého] jediného Syna, aby žádný, kdo v něho věří, nezahynul, ale měl život věčný. Vždyť Bůh neposlal [svého] Syna na svět, aby svět odsoudil, ale aby byl svět skrze něj zachráněn.".as_bytes().to_owned();
@@ -91,19 +92,6 @@ mod tests {
         let decrypted_chunk = encrypted_chunk.decrypt()?;
 
         assert_eq!(decrypted_chunk.data_ref(), original_data);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_serialization() -> Result<()> {
-        let original_data = vec![1, 2, 3, 4, 5];
-        let hash = ps_hash::hash(&original_data)?;
-        let data_chunk = OwnedDataChunk::from_data_and_hash_unchecked(original_data.clone(), hash);
-
-        let serialized = data_chunk.serialize()?;
-
-        assert_eq!(serialized.data_ref(), original_data);
 
         Ok(())
     }
