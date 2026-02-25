@@ -136,10 +136,6 @@ impl DataChunk for SerializedDataChunk {
         &self.hash
     }
 
-    fn hash(&self) -> Hash {
-        self.hash
-    }
-
     /// Transforms this [`DataChunk`] into [`Bytes`].
     fn into_bytes(self) -> Bytes {
         Bytes::from_owner(SharedBuffer::from(self.buffer)).slice(HASH_SIZE..)

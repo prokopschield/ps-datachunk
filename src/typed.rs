@@ -72,10 +72,6 @@ where
         self.chunk.hash_ref()
     }
 
-    fn hash(&self) -> Hash {
-        self.chunk.hash()
-    }
-
     /// Transforms this [`DataChunk`] into [`Bytes`].
     fn into_bytes(self) -> Bytes {
         self.chunk.into_bytes()

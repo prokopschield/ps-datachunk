@@ -1,5 +1,3 @@
-use ps_hash::Hash;
-
 use crate::{BorrowedDataChunk, CowDataChunk, DataChunk, OwnedDataChunk};
 
 impl DataChunk for CowDataChunk<'_> {
@@ -12,14 +10,6 @@ impl DataChunk for CowDataChunk<'_> {
             Self::Borrowed(chunk) => chunk.data_ref(),
             Self::Mbuf(chunk) => chunk.data_ref(),
             Self::Owned(chunk) => chunk.data_ref(),
-        }
-    }
-
-    fn hash(&self) -> Hash {
-        match self {
-            Self::Borrowed(chunk) => chunk.hash(),
-            Self::Mbuf(chunk) => chunk.hash(),
-            Self::Owned(chunk) => chunk.hash(),
         }
     }
 

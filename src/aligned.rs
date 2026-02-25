@@ -99,9 +99,6 @@ impl DataChunk for AlignedDataChunk {
     fn hash_ref(&self) -> &Hash {
         &self.hash
     }
-    fn hash(&self) -> Hash {
-        self.hash
-    }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].
     fn into_bytes(self) -> Bytes {

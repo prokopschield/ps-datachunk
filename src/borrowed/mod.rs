@@ -32,9 +32,6 @@ impl DataChunk for BorrowedDataChunk<'_> {
     fn hash_ref(&self) -> &Hash {
         &self.hash
     }
-    fn hash(&self) -> Hash {
-        self.hash
-    }
 
     fn borrow(&self) -> BorrowedDataChunk<'_> {
         Self {

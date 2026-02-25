@@ -27,10 +27,6 @@ impl DataChunk for MbufDataChunk<'_> {
         self.inner.get_metadata()
     }
 
-    fn hash(&self) -> Hash {
-        *self.inner.get_metadata()
-    }
-
     /// Transforms this chunk into an [`OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
         crate::OwnedDataChunk::from_data_and_hash_unchecked(Arc::from(self.data_ref()), self.hash())

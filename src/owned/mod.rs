@@ -76,9 +76,6 @@ impl DataChunk for OwnedDataChunk {
     fn hash_ref(&self) -> &Hash {
         self.hash_ref()
     }
-    fn hash(&self) -> Hash {
-        self.hash()
-    }
 
     /// Transforms this [`DataChunk`] into [`Bytes`].
     fn into_bytes(self) -> Bytes {

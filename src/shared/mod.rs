@@ -29,10 +29,6 @@ impl DataChunk for SharedDataChunk {
         &self.hash
     }
 
-    fn hash(&self) -> Hash {
-        self.hash
-    }
-
     /// Transforms this [`DataChunk`] into [`Bytes`].
     fn into_bytes(self) -> Bytes {
         Bytes::from_owner(self.data)
