@@ -140,6 +140,7 @@ mod tests {
         let typed = 42_u32.to_typed_datachunk()?;
 
         assert_eq!(*typed.typed_ref()?, 42_u32);
+        assert_eq!(*typed, *typed.typed_ref()?);
 
         Ok(())
     }
