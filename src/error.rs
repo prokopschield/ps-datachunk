@@ -17,8 +17,6 @@ pub enum PsDataChunkError {
     #[error(transparent)]
     HashValidationError(#[from] ps_hash::HashValidationError),
     #[error(transparent)]
-    PsCypherError(#[from] ps_cypher::PsCypherError),
-    #[error(transparent)]
     TryFromSliceError(#[from] TryFromSliceError),
     #[error("The data chunk was not correctly layed out")]
     InvalidDataChunk,
