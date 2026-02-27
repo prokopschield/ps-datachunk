@@ -48,7 +48,7 @@ impl DataChunk for EncryptedDataChunk {
         Bytes::from_owner(SharedBuffer::from(self.data))
     }
 
-    /// Transforms this chunk into an [`OwnedDataChunk`]
+    /// Transforms this chunk into an [`crate::OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash, key: _ } = self;
 

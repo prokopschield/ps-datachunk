@@ -121,7 +121,7 @@ impl DataChunk for SerializedDataChunk {
         Bytes::from_owner(SharedBuffer::from(self.buffer)).slice(HASH_SIZE..)
     }
 
-    /// Transforms this chunk into an [`OwnedDataChunk`]
+    /// Transforms this chunk into an [`crate::OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
         let hash = self.hash();
 

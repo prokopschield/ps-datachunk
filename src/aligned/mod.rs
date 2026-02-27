@@ -104,7 +104,7 @@ impl DataChunk for AlignedDataChunk {
         Bytes::from_owner(self.data)
     }
 
-    /// Transforms this chunk into an [`OwnedDataChunk`]
+    /// Transforms this chunk into an [`crate::OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash } = self;
 

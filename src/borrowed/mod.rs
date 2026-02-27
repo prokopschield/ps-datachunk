@@ -40,7 +40,7 @@ impl DataChunk for BorrowedDataChunk<'_> {
         }
     }
 
-    /// Transforms this chunk into an [`OwnedDataChunk`]
+    /// Transforms this chunk into an [`crate::OwnedDataChunk`]
     fn into_owned(self) -> crate::OwnedDataChunk {
         let Self { data, hash } = self;
 
