@@ -16,7 +16,7 @@ pub enum DataChunkError {
     HashValidation(#[from] ps_hash::HashValidationError),
     #[error(transparent)]
     Slice(#[from] TryFromSliceError),
-    #[error("The data chunk was not correctly layed out")]
+    #[error("The data chunk was not correctly laid out")]
     InvalidLayout,
     #[error("The hash of a chunk was incorrect")]
     HashMismatch,
