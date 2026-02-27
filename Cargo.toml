@@ -1,6 +1,6 @@
 [package]
 name = "ps-datachunk"
-version = "0.1.0-35"
+version = "0.1.0-36"
 edition = "2021"
 description = "Chunk-based data encrypter"
 documentation = "https://docs.rs/ps-datachunk"
