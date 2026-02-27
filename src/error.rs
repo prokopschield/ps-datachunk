@@ -1,31 +1,29 @@
 use std::array::TryFromSliceError;
 
-use ps_buffer::BufferError;
-use ps_cypher::{DecryptionError, EncryptionError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum PsDataChunkError {
+pub enum DataChunkError {
     #[error(transparent)]
-    BufferError(#[from] BufferError),
+    Buffer(#[from] ps_buffer::BufferError),
     #[error(transparent)]
-    DecryptionError(#[from] DecryptionError),
+    Decryption(#[from] ps_cypher::DecryptionError),
     #[error(transparent)]
-    EncryptionError(#[from] EncryptionError),
+    Encryption(#[from] ps_cypher::EncryptionError),
     #[error(transparent)]
-    HashError(#[from] ps_hash::HashError),
+    Hash(#[from] ps_hash::HashError),
     #[error(transparent)]
-    HashValidationError(#[from] ps_hash::HashValidationError),
+    HashValidation(#[from] ps_hash::HashValidationError),
     #[error(transparent)]
-    TryFromSliceError(#[from] TryFromSliceError),
+    Slice(#[from] TryFromSliceError),
     #[error("The data chunk was not correctly layed out")]
-    InvalidDataChunk,
+    InvalidLayout,
     #[error("The hash of a chunk was incorrect")]
-    InvalidHash,
+    HashMismatch,
     #[error("Rkyv deserialization failed")]
-    RkyvInvalidArchive,
+    InvalidArchive,
     #[error("Rkyv serialization failed")]
-    RkyvSerializationFailed,
+    Serialization,
 }
 
-pub type Result<T> = std::result::Result<T, PsDataChunkError>;
+pub type Result<T> = std::result::Result<T, DataChunkError>;

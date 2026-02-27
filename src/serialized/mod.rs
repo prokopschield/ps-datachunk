@@ -4,7 +4,7 @@ use bytes::Bytes;
 use ps_buffer::{Buffer, SharedBuffer};
 use ps_hash::{hash, Hash, HASH_SIZE};
 
-use crate::{DataChunk, EncryptedDataChunk, PsDataChunkError, Result};
+use crate::{DataChunk, DataChunkError, EncryptedDataChunk, Result};
 
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SerializedDataChunk {
@@ -71,7 +71,7 @@ impl SerializedDataChunk {
     /// such as padding and buffer length, are not validated.
     pub fn from_serialized_buffer(buffer: Buffer) -> Result<Self> {
         if buffer.len() < HASH_SIZE {
-            return Err(PsDataChunkError::InvalidDataChunk);
+            return Err(DataChunkError::InvalidLayout);
         }
 
         let hash = &buffer[..HASH_SIZE];
@@ -79,7 +79,7 @@ impl SerializedDataChunk {
         let calculated_hash = ps_hash::hash(data)?;
 
         if hash != calculated_hash.to_string().as_bytes() {
-            return Err(PsDataChunkError::InvalidHash);
+            return Err(DataChunkError::HashMismatch);
         }
 
         let chunk = Self {

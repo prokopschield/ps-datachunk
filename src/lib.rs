@@ -15,7 +15,7 @@ pub use borrowed::BorrowedDataChunk;
 pub use bytes::Bytes;
 pub use cow::CowDataChunk;
 pub use encrypted::EncryptedDataChunk;
-pub use error::PsDataChunkError;
+pub use error::DataChunkError;
 pub use error::Result;
 pub use mbuf::MbufDataChunk;
 pub use owned::OwnedDataChunk;

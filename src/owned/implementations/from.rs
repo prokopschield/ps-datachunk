@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 
-use crate::{OwnedDataChunk, PsDataChunkError, Result};
+use crate::{DataChunkError, OwnedDataChunk, Result};
 
 impl From<OwnedDataChunk> for Bytes {
     fn from(value: OwnedDataChunk) -> Self {
@@ -17,7 +17,7 @@ impl From<&OwnedDataChunk> for Bytes {
 }
 
 impl TryFrom<Arc<[u8]>> for OwnedDataChunk {
-    type Error = PsDataChunkError;
+    type Error = DataChunkError;
 
     fn try_from(value: Arc<[u8]>) -> Result<Self> {
         let hash = ps_hash::hash(&value)?;
@@ -27,7 +27,7 @@ impl TryFrom<Arc<[u8]>> for OwnedDataChunk {
 }
 
 impl TryFrom<&Arc<[u8]>> for OwnedDataChunk {
-    type Error = PsDataChunkError;
+    type Error = DataChunkError;
 
     fn try_from(value: &Arc<[u8]>) -> Result<Self> {
         let hash = ps_hash::hash(value)?;

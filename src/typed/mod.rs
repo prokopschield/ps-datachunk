@@ -40,7 +40,7 @@ where
     /// bytes/hash for `&self`) for the lifetime of this value.
     pub fn from_data_chunk(chunk: D) -> Result<Self> {
         rkyv::access::<T::Archived, Error>(chunk.data_ref())
-            .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)?;
+            .map_err(|_| crate::DataChunkError::InvalidArchive)?;
 
         let chunk = Self {
             _p: PhantomData,
@@ -56,7 +56,7 @@ where
     /// returning the archived value.
     pub fn typed_ref(&self) -> Result<&T::Archived> {
         rkyv::access::<T::Archived, Error>(self.chunk.data_ref())
-            .map_err(|_| crate::PsDataChunkError::RkyvInvalidArchive)
+            .map_err(|_| crate::DataChunkError::InvalidArchive)
     }
 }
 
@@ -136,7 +136,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{OwnedDataChunk, PsDataChunkError};
+    use crate::{DataChunkError, OwnedDataChunk};
 
     #[test]
     fn typed_ref_returns_checked_ref() -> Result<()> {
@@ -154,6 +154,6 @@ mod tests {
 
         let result = TypedDataChunk::<OwnedDataChunk, u32>::from_data_chunk(chunk);
 
-        assert!(matches!(result, Err(PsDataChunkError::RkyvInvalidArchive)));
+        assert!(matches!(result, Err(DataChunkError::InvalidArchive)));
     }
 }
